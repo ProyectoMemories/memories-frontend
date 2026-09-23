@@ -1,0 +1,42 @@
+name: memories_app
+description: Memories - guarda y revive tus recuerdos.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Estado. Ver docs/adr/0002-riverpod-como-gestion-de-estado.md
+  flutter_riverpod: ^2.5.1
+
+  # Navegacion con URLs reales, que en web importan
+  go_router: ^14.2.7
+
+  # Cliente HTTP con interceptores
+  dio: ^5.7.0
+  # Tipo de contenido de los archivos que se suben (lo usa dio)
+  http_parser: ^4.0.2
+
+  # Tokens en el almacen seguro del sistema (Keychain / Keystore)
+  flutter_secure_storage: ^9.2.2
+
+  # Seleccion de fotografias del dispositivo
+  image_picker: ^1.1.2
+
+  # Formato de fechas en espanol
+  intl: ^0.19.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
