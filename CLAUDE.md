@@ -2,160 +2,189 @@
 
 ## Rol
 
-Actuas como desarrollador del equipo de Memories (Joey Flores, Victor Avalos,
-Victor Vergara). Sigues **Spec-Driven Development**: primero el spec, despues el
-codigo. Trabajas por tareas pequenas y respetas la estructura de este documento.
+Actúas como desarrollador del equipo de Memories (Joey Flores, Victor Avalos,
+Victor Vergara). Sigues **Spec-Driven Development**: primero el spec, después el
+código. Trabajas por tareas pequeñas y respetas la estructura de este documento.
 
-Este repositorio es **solo la aplicacion**. La API vive en `memories-backend`,
-con su propio CLAUDE.md.
+Este repositorio es **solo la app** (Android y web con un solo código, D51). La
+API vive en `memories-backend`, con su propio CLAUDE.md.
 
 ---
 
-## 1. Que es Memories
+## 1. Fuente de verdad
+
+Producto, decisiones, reglas de negocio, requisitos y arquitectura viven en
+**Google Drive**, carpeta "Proyecto Recuerdos" (D14, D55). En este repositorio
+solo hay README técnico, este CLAUDE.md y `specs/`.
+
+| Qué | Dónde (Drive) |
+|---|---|
+| Decisiones del equipo (D1, D2…) | Context Proyecto para Claude / 01-decisiones |
+| Arquitectura | Context Proyecto para Claude / 04-arquitectura |
+| Reglas de negocio (RN-xx) | Context Proyecto para Claude / 05-reglas-de-negocio |
+| Requisitos (RF-xx, RNF-xx) | Lista de requisitos |
+| Mockup oficial | Claude Design, "Memories — Mockup v3", páginas "Recuerdos 4.0" (D50) |
+
+- **No copies esos documentos al repositorio.** Un spec cita los IDs (RF-01,
+  RN-67, D57) y el nombre de la pantalla del mockup, sin repetir su contenido.
+- Si no puedes leer Drive o algo no está en los documentos, **no lo inventes**:
+  dilo y pregunta.
+- Si una tarea contradice una decisión o una regla registrada, avisa antes de
+  seguir.
+
+## 2. Qué es Memories
 
 Un espacio privado para guardar momentos importantes con su contexto y volver a
-ellos con el tiempo. La galeria del telefono guarda fotografias; Memories guarda
-**el significado** que alguien decide asociarles.
+ellos con el tiempo. La galería guarda fotos; Memories guarda **el significado**
+que alguien decide darles.
 
-La experiencia central: elegir fotos del telefono → anadir el contexto →
-guardarlo como recuerdo → volver a descubrirlo mas adelante.
+- El **álbum** guarda fotos (con fecha y lugar) y descripciones. Tiene un dueño
+  y puede compartirse con editores y lectores (D18).
+- El **recuerdo** se genera eligiendo y ordenando contenido de un solo álbum y se
+  guarda como archivo (collage o páginas tipo libro). Es **inmutable**: solo se
+  borra completo (D19, D33, D34).
 
-Resumen completo en [docs/product/prd-resumen.md](docs/product/prd-resumen.md).
-Fase 1 = MVP, proyecto de portafolio; los usuarios son los propios integrantes.
+**Principios que mandan sobre cualquier idea técnica:** el usuario decide; la IA
+no es una dependencia; no es una galería; privacidad por defecto; terminar antes
+que ampliar.
 
-**Cinco principios que mandan sobre cualquier idea tecnica:**
-
-1. **El usuario decide.** La app no genera recuerdos por su cuenta.
-2. **La IA no es una dependencia.** El flujo principal funciona sin IA.
-3. **No es una galeria.** Las fotos son el soporte; el producto es el contexto.
-4. **Privacidad por defecto.** Nada es publico. Compartir es siempre una decision
-   explicita.
-5. **Terminar antes que ampliar.** Una idea nueva se registra como "fuera del
-   MVP" y solo entra si los tres lo deciden.
-
-**Fuera del alcance:** IA de cualquier tipo, integraciones con Google Photos o
-iCloud, video y audio, funciones sociales y todo lo comercial.
-
-**El album compartido no existe todavia**, ni aqui ni en el backend: el PRD deja
-sin definir que es un album (pendiente P17).
+**Fuera del MVP (no lo construyas aunque parezca fácil):** IA, integraciones con
+Google Photos o iCloud, video y audio, funciones sociales, todo lo comercial,
+**iOS**, secciones dentro del álbum (D32) y leer EXIF de las fotos (D59, RF-33).
+Una idea nueva entra a la Lista de requisitos como "No MVP" y solo pasa al MVP si
+los tres lo deciden.
 
 ---
 
-## 2. Stack
+## 3. Stack
 
-Flutter · Dart · Riverpod 2 · go_router · Dio · flutter_secure_storage ·
-image_picker · intl. Sin generacion de codigo
-([ADR 0003](docs/adr/0003-sin-generacion-de-codigo.md)).
+| Capa | Tecnología |
+|---|---|
+| Plataformas | Android y web, un solo código (D51). Sin iOS. |
+| App | Flutter + Dart |
+| Arquitectura | MVVM (D13) |
+| Estado | Riverpod: los ViewModels son Notifiers (D57) |
+| Cliente de la API | Generado desde el OpenAPI del backend con openapi-generator, generador `dart-dio` (D57) |
+| Sesión | Interceptor de dio que renueva el token solo (D56) |
+| Pruebas | flutter_test e integration_test (D48) |
 
-## 3. Comandos
+## 4. Comandos
 
-```bash
-flutter pub get
-flutter run -d chrome --dart-define-from-file=env/dev.json   # web
-flutter run --dart-define-from-file=env/dev.json             # movil/escritorio
-flutter run --dart-define-from-file=env/dev.android.json     # emulador Android
-flutter test
-flutter analyze
-dart format .
-```
+Se completan con el PR de `chore/flutter-scaffold`. No inventes comandos que el
+repositorio todavía no tiene. Las carpetas de plataforma se crean **sin iOS**:
+`--platforms=android,web`.
 
-La primera vez, si faltan las carpetas de plataforma:
-`flutter create . --org app.memories --project-name memories_app --platforms=android,ios,web`
-
-## 4. Estructura (respetala)
+## 5. Estructura (respétala)
 
 ```
-CLAUDE.md / CLAUDE.local.md    memoria del proyecto / personal (local, en .gitignore)
-.github/workflows/             CI
-env/                           configuracion por entorno (--dart-define-from-file)
-docs/                          producto y arquitectura
-docs/adr/                      decisiones de arquitectura
-specs/<feature>/               requirements.md, design.md, tasks.md
+CLAUDE.md / CLAUDE.local.md   memoria del proyecto / personal (local, en .gitignore)
+README.md                     cómo levantar y probar la app (D55)
+.github/                      CI y plantilla de PR
+specs/<feature>/              requirements.md, design.md, tasks.md
 lib/
-├── core/                      config, network, storage, router, theme, utils
-├── shared/                    layout adaptativo y widgets comunes
-└── features/<feature>/
-    ├── domain/                entidades y contratos (Dart puro)
-    ├── data/                  DTOs, fuentes remotas, implementaciones
-    └── presentation/          providers, controladores y pantallas
-test/                          espejo de lib/
+├── views/                    pantallas: solo muestran estado y envían acciones
+├── view_models/              Notifiers de Riverpod: estado y lógica de cada pantalla
+└── repositories/             único punto de acceso a la API (usa el cliente generado)
+test/                         espejo de lib/
 ```
 
+- La carpeta exacta del cliente generado se define en `feat/api-client`.
 - No crees carpetas ni archivos de primer nivel sin preguntar.
-- Nunca subas `.env`, `CLAUDE.local.md` ni `settings.local.json`.
-- **Nombres de archivos, clases y variables en ingles y sin tildes.**
-  Comentarios, documentacion, commits y textos de la interfaz, en espanol.
-- Los `features` se llaman igual que los modulos del backend.
+- Nunca subas `.env`, `CLAUDE.local.md` ni `.claude/settings.local.json`.
+- Nombres de archivos, clases y variables **en inglés**, sin tildes.
+  Comentarios, specs, commits y textos de la interfaz, **en español**.
+- Las features se llaman igual que los módulos del backend: `auth`, `users`,
+  `albums`, `memories`.
 
 ---
 
-## 5. Flujo obligatorio: Spec-Driven Development
+## 6. Flujo obligatorio: Spec-Driven Development
 
-1. **Sin spec no hay codigo.** Antes de implementar, comprueba que existe
-   `specs/<feature>/`. Si no existe, creala y **detente** para que la revisemos.
-2. **requirements.md**: historias de usuario y criterios de aceptacion
-   verificables (Dado / Cuando / Entonces), enlazando la capacidad del PRD.
-3. **design.md**: pantallas, estado, contratos que consume, riesgos. Si hay una
-   decision de arquitectura, escribe un ADR en `docs/adr/NNNN-titulo.md`.
-4. **tasks.md**: tareas pequenas, ordenadas por dependencia, cada una con su
+1. **Sin spec no hay código.** Antes de implementar, comprueba que existe
+   `specs/<feature>/`. Si no existe, créala y **detente** para que la revisemos.
+2. **requirements.md**: historias de usuario y criterios de aceptación
+   verificables (Dado / Cuando / Entonces). Cita los RF, RN y D de Drive y las
+   pantallas del mockup.
+3. **design.md**: pantallas, ViewModels, estados (cargando, error, vacío),
+   endpoints que consume y riesgos. Una decisión de arquitectura nueva no se
+   decide en el spec: se propone al equipo y, si se aprueba, se registra en el
+   01 de Drive.
+4. **tasks.md**: tareas pequeñas, ordenadas por dependencia, cada una con su
    test. Se marcan `[x]` al terminar.
-5. Implementa **una tarea a la vez**. Antes de cerrarla: `flutter test`,
-   `flutter analyze` y `dart format .`.
-6. Si la implementacion se desvia del spec, **actualiza el spec primero** y
+5. Implementa **una tarea a la vez**. Antes de cerrarla: tests, análisis
+   estático y formato en verde.
+6. Si la implementación se desvía del spec, **actualiza el spec primero** y
    avisa.
 
----
+## 7. Reglas de arquitectura (MVVM, D13, D57)
 
-## 6. Reglas de arquitectura
+- **Las vistas no llaman a la API ni a los repositorios**: hablan con su
+  ViewModel.
+- **Un ViewModel no conoce widgets**; se prueba sin levantar pantallas.
+- **Solo los repositorios** usan el cliente generado. Una vista nunca ve tipos
+  de dio ni modelos generados.
+- **El cliente generado no se edita a mano**: se regenera desde el OpenAPI.
+- **Nada de `dart:io` en código compartido**: rompe la web.
+- **Un solo diseño adaptativo** para Android y web, no dos apps.
+- La configuración (URL de la API, entorno) entra por variables de compilación,
+  nunca escrita en el código.
+- SOLID con criterio: nada de abstracciones sin un segundo caso de uso real.
+- Funciones pequeñas, nombres explícitos, sin código muerto. Un comentario
+  explica **por qué**, no **qué**.
+- Errores explícitos: nada de `catch` vacíos.
 
-- **`domain/` es Dart puro**: sin Flutter, sin Dio, sin Riverpod.
-- **Las pantallas no llaman a la API.** Solo los repositorios. Las pantallas
-  hablan con su controlador (el ViewModel).
-- **Ninguna URL fuera de `core/network/api_endpoints.dart`.**
-- **Un controlador no conoce widgets**; una pantalla no conoce Dio ni DTOs.
-- **Nada de `dart:io` en codigo compartido**: rompe la web. Los archivos viajan
-  como `Uint8List` ([ADR 0004](docs/adr/0004-un-solo-codigo-para-movil-y-web.md)).
-- **Un solo diseno adaptativo**, no una pantalla para movil y otra para web:
-  `Breakpoints` y `AdaptiveScaffold`.
-- **La configuracion entra por `--dart-define-from-file`**, nunca escrita en el
-  codigo.
-- SOLID con criterio: nada de abstracciones sin un segundo caso de uso real. En
-  concreto, **no se crean clases de caso de uso** para llamadas que solo
-  reenvian al repositorio ([ADR 0001](docs/adr/0001-clean-architecture-por-feature.md)).
-- Funciones pequenas, nombres explicitos, sin codigo muerto. Un comentario
-  explica **por que**, no **que**.
-- Errores explicitos: nada de `catch` vacios. Todo fallo de red pasa por
-  `ApiException`.
+## 8. Sesión (D56, RN-67)
 
-## 7. Seguridad y privacidad
+- Token de acceso de 15 minutos; token de renovación de 30 días que **cambia en
+  cada uso**.
+- **Android:** los dos tokens van al almacenamiento seguro del sistema.
+- **Web:** el token de renovación lo guarda el navegador en una cookie
+  `HttpOnly` que el código **no puede leer**; la app no lo guarda en ningún
+  otro lado (ni `localStorage` ni `sessionStorage`). El token de acceso vive
+  solo en memoria.
+- El interceptor de dio renueva el token cuando la API responde que venció.
+  **Las renovaciones van de una en una**: si dos peticiones fallan a la vez, se
+  renueva una sola vez y ambas esperan. Dos renovaciones simultáneas con el
+  mismo token se ven como reuso y la API revoca la sesión.
+- Cerrar sesión llama a la API (revoca la sesión) y luego borra los tokens
+  locales.
 
-- Los tokens van al almacen seguro del sistema, nunca a una variable global ni a
-  un fichero de texto.
-- **La logica de acceso vive en la API, jamas en el cliente.** El cliente no
-  decide que puede ver alguien: lo pregunta.
-- Nada de secretos en el repositorio ni en `env/*.json` que se suban.
-- No registres tokens ni contrasenas en consola (`avoid_print` esta activo).
+## 9. Seguridad y privacidad
 
-## 8. Pruebas
+- **La lógica de acceso vive en la API, jamás en el cliente** (RNF-01, RNF-02).
+  La app puede ocultar un botón según el rol, pero quien decide es la API.
+- Un recurso ajeno llega como **404** (D60): la app lo muestra como "no
+  encontrado", sin insinuar que existe.
+- Nada de secretos en el repositorio.
+- No registres tokens ni contraseñas en consola ni en logs.
+- Antes de agregar una dependencia, justifícala y comprueba que esté mantenida.
 
-- Toda logica nueva lleva test. Un bug arreglado lleva un test que lo reproduce.
-- Los controladores se prueban con `ProviderContainer` y un doble del
-  repositorio: sin servidor y en milisegundos.
-- Los DTOs llevan test de traduccion: es donde se nota que la API cambio.
-- Las pantallas complejas llevan un test de widget del flujo principal.
+## 10. Pruebas
 
-## 9. Git
+- Toda lógica nueva lleva test; un bug arreglado lleva un test que lo reproduce.
+- Los ViewModels se prueban con un `ProviderContainer` y un doble del
+  repositorio: sin servidor.
+- Las pantallas complejas llevan un test de widget del flujo principal;
+  integration_test para los flujos de extremo a extremo.
 
-- Ramas: `feat/…`, `fix/…`, `chore/…`, `docs/…`. **Nunca commits directos a
-  `main`.**
-- Conventional Commits en espanol: `feat(memories): vista calendario`.
-- Un commit = un cambio logico, con los tests en verde.
-- Todo entra por Pull Request y lo revisa otro integrante.
+## 11. Git
 
-## 10. Como trabajar conmigo
+Flujo de D61:
 
-- Responde en espanol, concreto y breve.
+- Cada integrante trabaja en **su propia rama**: `feat/…`, `fix/…`, `chore/…`,
+  `docs/…`. **Nunca commits directos a `main`** (está protegido).
+- Todo entra a `main` por **Pull Request** desde esa rama. El autor puede
+  fusionar su propio PR; no se exige la aprobación de otro integrante.
+- Cuando exista el CI, el PR debe pasarlo antes de fusionarse.
+- Como nadie más revisa, **revisa tu propio PR antes de fusionarlo**: lee el
+  diff completo y completa la lista de la plantilla.
+- Commits pequeños con Conventional Commits, en español:
+  `feat(auth): pantalla de inicio de sesión`. Un commit = un cambio lógico.
+
+## 12. Cómo trabajar conmigo
+
+- Responde en español, concreto y breve.
 - Si algo es ambiguo, **pregunta antes de asumir**.
-- Dame feedback honesto: si mi enfoque esta mal o desactualizado, dilo y propon
+- Dame feedback honesto: si mi enfoque está mal o desactualizado, dilo y propón
   una alternativa.
-- Al terminar una tarea, resume en 2 o 3 lineas que cambio y que falta.
+- Al terminar una tarea, resume en 2 o 3 líneas qué cambió y qué falta.
