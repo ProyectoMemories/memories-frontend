@@ -4,10 +4,16 @@
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
 
-# Entornos con datos reales (dev.json si esta es de ejemplo)
+# Entorno y secretos: nunca se suben
+.env
 env/*.local.json
+
+# Android: firma de la app y caché de Kotlin
+android/key.properties
+*.jks
+*.keystore
+android/.kotlin/
 
 # IDE
 .idea/
