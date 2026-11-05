@@ -70,9 +70,30 @@ los tres lo deciden.
 
 ## 4. Comandos
 
-Se completan con el PR de `chore/flutter-scaffold`. No inventes comandos que el
-repositorio todavía no tiene. Las carpetas de plataforma se crean **sin iOS**:
-`--platforms=android,web`.
+Flutter **3.47.9**, canal `stable` (Dart 3.13.7). Las dependencias van con
+versión exacta y el `pubspec.lock` se sube al repo.
+
+```bash
+flutter pub get                         # dependencias
+dart format .                           # formato (el CI usa --set-exit-if-changed)
+flutter analyze                         # análisis estático
+flutter test                            # pruebas
+```
+
+```bash
+# Web: siempre en el puerto 3000 (único origen que acepta la API)
+flutter run -d chrome --web-port 3000 --dart-define=API_BASE_URL=http://localhost:8001
+# Android: el emulador llega a la PC por 10.0.2.2
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8001
+flutter build web --dart-define=API_BASE_URL=...
+flutter build apk --debug --dart-define=API_BASE_URL=...
+```
+
+- La URL de la API entra solo por `--dart-define=API_BASE_URL`; `main.dart` la
+  valida al arrancar (`lib/app_config.dart`).
+- No inventes comandos que el repositorio todavía no tiene. Las carpetas de
+  plataforma se crearon **sin iOS** (`--platforms=android,web`); no agregues
+  otras.
 
 ## 5. Estructura (respétala)
 
@@ -82,6 +103,8 @@ README.md                     cómo levantar y probar la app (D55)
 .github/                      CI y plantilla de PR
 specs/<feature>/              requirements.md, design.md, tasks.md
 lib/
+├── main.dart                 arranque: valida la configuración y monta la app
+├── app_config.dart           configuración por --dart-define
 ├── views/                    pantallas: solo muestran estado y envían acciones
 ├── view_models/              Notifiers de Riverpod: estado y lógica de cada pantalla
 └── repositories/             único punto de acceso a la API (usa el cliente generado)
