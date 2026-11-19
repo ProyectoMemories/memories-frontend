@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# El CI solo lee el código; no necesita más permisos.
+permissions:
+  contents: read
+
+# Si subes otro commit al mismo PR, se cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+  # URL de ejemplo: solo sirve para compilar; el CI no habla con ninguna API.
+  API_BASE_URL: "http://localhost:8001"
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: true
+      - name: Dependencias
+        # Falla si pubspec.lock no coincide con pubspec.yaml (versiones exactas).
+        run: flutter pub get --enforce-lockfile
+      - name: Formato
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Análisis estático
+        run: flutter analyze
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: true
+      - name: Dependencias
+        run: flutter pub get --enforce-lockfile
+      - name: Pruebas
+        run: flutter test
+
+  build-web:
+    name: build-web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: true
+      - name: Dependencias
+        run: flutter pub get --enforce-lockfile
+      - name: Compilar web
+        run: flutter build web --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+  build-apk:
+    name: build-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6.1.0
+      # JDK 17: es el mínimo que pide el Android Gradle Plugin 9.1 que usa
+      # android/settings.gradle.kts. Fuente: tabla "Compatibility" de
+      # https://developer.android.com/build/releases/agp-9-1-0-release-notes
+      - uses: actions/setup-java@v6.2.0
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: true
+      - name: Dependencias
+        run: flutter pub get --enforce-lockfile
+      - name: Compilar APK (debug)
+        run: flutter build apk --debug --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
