@@ -22,7 +22,7 @@ solo hay README técnico, este CLAUDE.md y `specs/`.
 | Decisiones del equipo (D1, D2…) | Context Proyecto para Claude / 01-decisiones |
 | Arquitectura | Context Proyecto para Claude / 04-arquitectura |
 | Reglas de negocio (RN-xx) | Context Proyecto para Claude / 05-reglas-de-negocio |
-| Reglas del asistente (rol, marcas, fases) | Context Proyecto para Claude / 00-instrucciones-asistente |
+| Referencia histórica de las reglas del asistente (D76) | Context Proyecto para Claude / 00-instrucciones-asistente |
 | Qué Skill usar en cada tarea | Context Proyecto para Claude / 03-manual-skills |
 | Requisitos (RF-xx, RNF-xx) | Lista de requisitos |
 | Mockup oficial | Claude Design, "Memories — Mockup v3", páginas "Recuerdos 4.0" (D50) |
@@ -33,6 +33,8 @@ solo hay README técnico, este CLAUDE.md y `specs/`.
   dilo y pregunta.
 - Si una tarea contradice una decisión o una regla registrada, avisa antes de
   seguir.
+- Al empezar cada tarea, lee en Drive las decisiones del 01 que aplican y la
+  spec en `specs/`. Compara contra el 01, no contra un resumen.
 
 ## 2. Qué es Memories
 
@@ -136,7 +138,7 @@ test/                         espejo de lib/
 Nivel **spec-anchored** (D66): la spec se mantiene al día durante todo el
 proyecto y es el contrato contra el que se compara el código. Ciclo:
 Specify (`requirements.md`: **qué**, no cómo) → Plan (`design.md`) → Tasks
-(`tasks.md`) → Implement (una tarea). Comandos: `/spec <feature>` y
+(`tasks.md`) → Implement (`/task`, en bucle). Comandos: `/spec <feature>` y
 `/task <feature>`.
 
 1. **Sin spec no hay código.** Antes de implementar, comprueba que existe
@@ -150,8 +152,8 @@ Specify (`requirements.md`: **qué**, no cómo) → Plan (`design.md`) → Tasks
    01 de Drive.
 4. **tasks.md**: tareas pequeñas, ordenadas por dependencia, cada una con su
    test. Se marcan `[x]` al terminar.
-5. Implementa **una tarea a la vez**. Antes de cerrarla: tests, análisis
-   estático y formato en verde.
+5. `/task` ejecuta las tareas en bucle, un commit por tarea, y se detiene solo
+   en los casos de su paso 4. Antes de cada commit: tests y lint en verde.
 6. Si la implementación se desvía del spec, **actualiza el spec primero** y
    avisa.
 
@@ -229,9 +231,9 @@ funciona pero que nadie del equipo puede explicar).
 - **Explica lo que cambias.** Al cerrar una tarea, explica en 3 a 5 líneas qué
   hace el cambio y por qué. Si la persona no lo entiende, la tarea no está
   terminada.
-- **Modo Plan** para tareas grandes, refactors o cambios que tocan varios
-  módulos: presenta el plan y espera la aprobación. No hace falta en
-  correcciones pequeñas y obvias.
+- **Modo Plan** para la spec, los refactors y los cambios que tocan varios
+  módulos: presenta el plan y espera la aprobación. No aplica a cada tarea
+  dentro de `/task` ni a correcciones pequeñas y obvias.
 - **Bucle escribir → probar → corregir.** Primero el test, después el código.
   Cada tarea termina con `/check` en verde. Si un test falla, arregla la causa;
   nunca cambies el test para que pase sin avisar.
@@ -239,7 +241,7 @@ funciona pero que nadie del equipo puede explicar).
   Flutter, Riverpod, dio u openapi-generator que todavía no esté en el repo, consúltala con Context7 en la
   versión fijada en `pubspec.yaml`. No escribas de memoria APIs que pudieron
   cambiar.
-- **Higiene del contexto.** Una tarea por sesión. `/clear` al cambiar de tarea
+- **Higiene del contexto.** Un feature por sesión. `/clear` al cambiar de feature
   y `/compact` si la sesión se alarga. El avance vive en `tasks.md`, no en el
   chat.
 - **Subagente `reviewer`.** Antes de abrir un PR, pídele que revise la rama:
@@ -295,7 +297,7 @@ equipo avance ordenado y aprenda, no hacer el trabajo por él.
   antigua nunca se edita: se agrega otra que la reemplaza.
 - Si algo es ambiguo, **pregunta antes de asumir**.
 - Al terminar una tarea: 2 o 3 líneas de qué cambió y qué falta, y
-  **Siguiente paso, responsable y fecha**.
+  **Siguiente paso**.
 
 ## 15. Correcciones aprendidas
 
