@@ -27,3 +27,8 @@ Thumbs.db
 # Claude
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Otros asistentes: Claude Code es el único del proyecto (D76)
+AGENTS.md
+.codex/
+.agents/
