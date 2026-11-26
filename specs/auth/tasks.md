@@ -10,7 +10,7 @@ decisiones de `design.md` §2.
       imagen fijada de openapi-generator (`dart-dio`) desde
       `http://localhost:8001/openapi.json` · test: el paquete compila y
       `flutter analyze` pasa
-- [ ] La app depende del paquete local · test: un test crea el cliente con la
+- [x] La app depende del paquete local · test: un test crea el cliente con la
       `API_BASE_URL` de `app_config.dart`
 - [ ] README y CLAUDE.md §4: cómo regenerar el cliente cuando cambia la API
 

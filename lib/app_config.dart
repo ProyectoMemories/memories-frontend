@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 /// URL de la API, recibida al compilar con `--dart-define=API_BASE_URL=...`.
 ///
 /// Entra por variable de compilación para no escribir entornos en el código.
@@ -16,3 +18,9 @@ String validateApiBaseUrl(String value) {
   }
   return value;
 }
+
+/// URL de la API ya validada. Es un provider para que los tests la cambien
+/// sin compilar con otro `--dart-define`.
+final apiBaseUrlProvider = Provider<String>(
+  (ref) => validateApiBaseUrl(apiBaseUrlFromEnvironment),
+);
