@@ -13,6 +13,11 @@ dependencies:
   # Cliente HTTP del cliente generado; la app lo usa para errores e interceptores.
   dio: 5.11.1
   flutter_riverpod: 3.4.3
+  # Navegación con URLs reales: /verify-email y /reset-password (D79).
+  # Trae material_ui y cupertino_ui (transitivas), fijadas solo en
+  # pubspec.lock en 1.11.0 y 1.1.6 porque las últimas tenían menos de dos
+  # semanas (D79). Revisa sus fechas antes de un `flutter pub upgrade`.
+  go_router: 18.1.4
   # Tokens de sesión en Android (Keystore), D56 y D79. En web no se usa.
   # Trae jni y jni_flutter (transitivas), fijadas solo en pubspec.lock en 1.1.2
   # y 1.0.4+1 porque las últimas tenían menos de dos semanas (D79). Revisa sus

@@ -36,7 +36,7 @@ decisiones de `design.md` §2.
       confirmadas · test: el `ThemeData` usa los tokens
 - [x] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
       widget tests
-- [ ] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
+- [x] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
 - [ ] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
 - [ ] Inicio y Perfil provisionales; cerrar sesión · tests
 - [ ] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
