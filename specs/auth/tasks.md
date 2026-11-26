@@ -16,16 +16,16 @@ decisiones de `design.md` §2.
 
 ## F4 · Sesión (`feat/auth-session`)
 
-- [ ] `TokenStore`: Android con `flutter_secure_storage`; web solo en memoria ·
+- [x] `TokenStore`: Android con `flutter_secure_storage`; web solo en memoria ·
       tests con un doble del almacenamiento
-- [ ] `AuthRepository`: login, refresh, logout, con errores propios por `code`
+- [x] `AuthRepository`: login, refresh, logout, con errores propios por `code`
       (design §6) · tests con dio falso
-- [ ] Interceptor: renueva con `access_token_expired` y repite; una sola
+- [x] Interceptor: renueva con `access_token_expired` y repite; una sola
       renovación a la vez · test: dos 401 simultáneos = un refresh
-- [ ] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
+- [x] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
       `ProviderContainer`
-- [ ] Web: dio con `withCredentials: true` · test del adaptador configurado
-- [ ] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
+- [x] Web: dio con `withCredentials: true` · test del adaptador configurado
+- [x] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
       usa los del generador: connect 5 s, receive 3 s) y solo el interceptor de
       sesión, sin los cuatro de autenticación que agrega el cliente generado ·
       test de las opciones y los interceptores configurados
