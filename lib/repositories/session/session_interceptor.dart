@@ -46,17 +46,22 @@ class SessionInterceptor extends Interceptor {
     final sentToken = _bearerOf(request);
 
     // Sesión revocada en otro dispositivo o cuenta desactivada: el token de
-    // acceso todavía no vence, pero la API ya no lo acepta.
+    // acceso todavía no vence, pero la API ya no lo acepta. Solo se cierra si
+    // ese token sigue siendo el de la sesión actual: un 401 tardío no debe
+    // sacar a quien ya volvió a entrar.
     if (_hasCode(err, ApiErrorCode.notAuthenticated) && sentToken != null) {
-      await _endSession();
+      if (await _isCurrentAccessToken(sentToken)) await _endSession();
       return handler.next(err);
     }
+    // Sin token enviado no hay nada que renovar (y renovar desde la propia
+    // petición de refresh se esperaría a sí misma en el RefreshGate).
     if (!_hasCode(err, ApiErrorCode.accessTokenExpired) ||
-        request.extra[_retriedKey] == true) {
+        request.extra[_retriedKey] == true ||
+        sentToken == null) {
       return handler.next(err);
     }
 
-    final SessionTokens tokens;
+    final SessionTokens? tokens;
     try {
       tokens = await _renewedTokens(sentToken: sentToken);
     } on ApiError catch (failure) {
@@ -70,6 +75,17 @@ class SessionInterceptor extends Interceptor {
       );
     }
 
+    if (tokens == null) {
+      // La sesión terminó mientras la petición iba en camino: ya no hay nada
+      // que borrar ni que avisar.
+      return handler.next(
+        _renewalFailed(
+          request,
+          const ApiError(ApiErrorCode.invalidRefreshToken),
+        ),
+      );
+    }
+
     _setBearer(request, tokens.accessToken);
     request.extra[_retriedKey] = true;
     try {
@@ -79,16 +95,24 @@ class SessionInterceptor extends Interceptor {
     }
   }
 
-  /// Tokens con los que repetir la petición.
-  Future<SessionTokens> _renewedTokens({required String? sentToken}) async {
+  /// Tokens con los que repetir la petición, o null si la sesión ya terminó.
+  Future<SessionTokens?> _renewedTokens({required String sentToken}) async {
     final current = await _tokenStore.read();
-    if (current == null && sentToken != null) {
-      // La sesión terminó mientras la petición iba en camino.
-      throw const ApiError(ApiErrorCode.invalidRefreshToken);
-    }
+    if (current == null) return null;
     // La petición salió antes de que otra renovara: basta con el token nuevo.
-    if (current != null && current.accessToken != sentToken) return current;
+    if (current.accessToken != sentToken) return current;
     return _refresh();
+  }
+
+  Future<bool> _isCurrentAccessToken(String token) async {
+    try {
+      return (await _tokenStore.read())?.accessToken == token;
+    } catch (error, stackTrace) {
+      _report(error, stackTrace, 'al leer los tokens de la sesión');
+      // Sin poder leerlos no se sabe si son de otra sesión: se cierra, que es
+      // lo seguro ante un token que la API ya rechazó.
+      return true;
+    }
   }
 
   /// Borra los tokens y avisa. Nunca lanza: el interceptor siempre tiene que

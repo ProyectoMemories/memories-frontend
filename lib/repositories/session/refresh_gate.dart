@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../api_error.dart';
 import 'token_store.dart';
 
 /// Hace que las renovaciones del token vayan de una en una (D56, CLAUDE.md §8).
@@ -23,9 +22,9 @@ class RefreshGate {
     if (inFlight == null) return;
     try {
       await inFlight;
-    } on ApiError {
-      // El resultado lo maneja quien inició la renovación; aquí solo importa
-      // que ya no siga en curso.
+    } on Object {
+      // El resultado, éxito o error, lo maneja quien inició la renovación;
+      // aquí solo importa que ya no siga en curso.
     }
   }
 }

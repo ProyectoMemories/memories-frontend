@@ -68,6 +68,14 @@ void main() {
     expect(idle, isTrue);
   });
 
+  test('idle también termina si la renovación falla con otra cosa', () async {
+    final gate = RefreshGate();
+    final renewal = gate.run(() async => throw StateError('Keystore dañado'));
+
+    await gate.idle();
+    await expectLater(renewal, throwsStateError);
+  });
+
   test('idle sin renovación en curso termina enseguida', () async {
     await RefreshGate().idle();
   });

@@ -198,6 +198,40 @@ void main() {
     expect(expiredCalls, 1);
   });
 
+  test('un not_authenticated tardío no cierra la sesión nueva', () async {
+    // La petición sale con el token A; antes de su respuesta la persona ya
+    // volvió a entrar (token B).
+    final slowAnswer = Completer<void>();
+    adapter.handler = (_) async {
+      await slowAnswer.future;
+      return apiError(401, 'not_authenticated');
+    };
+    const newSession = SessionTokens(
+      accessToken: 'acceso-b',
+      refreshToken: 'sesion.secreto-b',
+    );
+
+    final late401 = failureCode('/privado');
+    await pumpEventQueue();
+    await store.save(newSession);
+    slowAnswer.complete();
+
+    expect(await late401, ApiErrorCode.notAuthenticated);
+    expect(store.tokens?.accessToken, 'acceso-b');
+    expect(expiredCalls, 0);
+  });
+
+  test(
+    'token vencido en una petición que no llevó token: no renueva',
+    () async {
+      buildDio(InMemoryTokenStore());
+      adapter.handler = (_) async => apiError(401, 'access_token_expired');
+
+      expect(await failureCode('/privado'), ApiErrorCode.accessTokenExpired);
+      expect(refreshCalls, 0);
+    },
+  );
+
   test('not_authenticated sin token enviado no toca la sesión', () async {
     buildDio(InMemoryTokenStore());
     adapter.handler = (_) async => apiError(401, 'not_authenticated');
@@ -239,6 +273,9 @@ void main() {
 
     expect(await late401, ApiErrorCode.invalidRefreshToken);
     expect(refreshCalls, 0);
+    // La sesión ya terminó: no se vuelve a borrar ni a avisar (podría borrar
+    // los tokens de un login que justo terminó).
+    expect(expiredCalls, 0);
   });
 
   group('fallos inesperados (reportados, nunca dejan peticiones colgadas)', () {

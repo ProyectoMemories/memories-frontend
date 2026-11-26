@@ -162,6 +162,14 @@ sesión, las de auth llevan a `/home`.
   usuario. Todo el que usa el token de renovación pasa por `RefreshGate`, y hay
   tests (con prueba de mutación) de dos 401 a la vez, de una 401 que llega
   después de otra renovación y de cerrar sesión durante una renovación.
+- **Renovación que empieza mientras viaja el `logout`** (aceptado): cerrar
+  sesión espera la renovación en curso, pero no impide que empiece otra si
+  justo entonces una petición recibe `access_token_expired`. En el servidor la
+  sesión queda revocada igual (por logout o por reuso); en el dispositivo la
+  respuesta tardía podría volver a guardar tokens de una sesión ya revocada, y
+  la primera petición con ellos cierra la sesión (`invalid_refresh_token` o
+  `not_authenticated`). Si se ve en la práctica, `logout` toma el
+  `RefreshGate` en exclusiva.
 
 ## 8. Pruebas (con `engineering:testing-strategy`)
 
