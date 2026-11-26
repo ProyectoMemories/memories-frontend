@@ -94,10 +94,15 @@ class AuthRepository {
   }
 }
 
+/// Plataforma que la app declara al iniciar sesión, sin `dart:io`.
+const currentClientPlatform = kIsWeb
+    ? ClientPlatform.web
+    : ClientPlatform.android;
+
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepository(
     api: ref.watch(memoriesApiProvider).getAuthApi(),
     tokenStore: ref.watch(tokenStoreProvider),
-    platform: kIsWeb ? ClientPlatform.web : ClientPlatform.android,
+    platform: currentClientPlatform,
   ),
 );

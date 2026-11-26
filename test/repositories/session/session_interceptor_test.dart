@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
 import 'package:memories/repositories/session/session_interceptor.dart';
@@ -163,6 +164,29 @@ void main() {
 
     expect(store.tokens?.refreshToken, 'sesion.secreto-1');
     expect(expiredCalls, 0);
+  });
+
+  test('un fallo inesperado al renovar no deja peticiones colgadas', () async {
+    final reported = <FlutterErrorDetails>[];
+    final previousOnError = FlutterError.onError;
+    FlutterError.onError = reported.add;
+    addTearDown(() => FlutterError.onError = previousOnError);
+    refresh = () async => throw StateError('falla inesperada');
+
+    await expectLater(
+      Future.wait([
+        dio.post<Object>('/uno', options: _secured),
+        dio.post<Object>('/dos', options: _secured),
+      ]),
+      throwsA(isA<DioException>()),
+    ).timeout(const Duration(seconds: 2));
+
+    // Se reporta para que no pase en silencio, y la sesión se mantiene.
+    // Future.wait espera las dos: ninguna quedó colgada. La segunda puede
+    // llegar cuando la primera renovación ya falló e intentar la suya.
+    expect(reported, isNotEmpty);
+    expect(reported.map((r) => r.exception), everyElement(isA<StateError>()));
+    expect(store.tokens?.refreshToken, 'sesion.secreto-1');
   });
 
   test('otro 401 (no vencido) pasa tal cual, sin renovar', () async {

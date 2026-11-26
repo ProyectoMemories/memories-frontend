@@ -25,7 +25,7 @@ decisiones de `design.md` §2.
 - [x] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
       `ProviderContainer`
 - [x] Web: dio con `withCredentials: true` · test del adaptador configurado
-- [ ] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
+- [x] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
       usa los del generador: connect 5 s, receive 3 s) y solo el interceptor de
       sesión, sin los cuatro de autenticación que agrega el cliente generado ·
       test de las opciones y los interceptores configurados

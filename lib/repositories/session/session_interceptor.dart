@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../api_error.dart';
 import 'token_store.dart';
@@ -94,6 +95,19 @@ class SessionInterceptor extends Interceptor {
         _onSessionExpired();
       }
       // Sin conexión no se cierra la sesión: la petición falla y ya.
+      completer.complete(null);
+    } catch (error, stackTrace) {
+      // Un fallo que no viene de la API es un error del código: se reporta
+      // en vez de lanzarlo, porque las peticiones que esperan a esta
+      // renovación quedarían colgadas.
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'memories',
+          context: ErrorDescription('al renovar el token de acceso'),
+        ),
+      );
       completer.complete(null);
     } finally {
       _refreshing = null;

@@ -4,8 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memories_api/memories_api.dart';
 
 import '../app_config.dart';
+import 'auth_repository.dart';
+import 'session/session_expired_signal.dart';
+import 'session/session_interceptor.dart';
+import 'session/token_store.dart';
 
 /// Opciones de dio para hablar con la API.
+///
+/// Los tiempos de espera son propios para que una regeneración del cliente
+/// no los cambie, y holgados para el emulador o una red móvil lenta.
 ///
 /// En web, `withCredentials` hace que el navegador guarde y envíe la cookie
 /// `HttpOnly` del token de renovación (design.md §5). El adaptador web de dio
@@ -14,6 +21,8 @@ import '../app_config.dart';
 BaseOptions apiBaseOptions({required String baseUrl, required bool isWeb}) {
   return BaseOptions(
     baseUrl: baseUrl,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
     extra: {if (isWeb) 'withCredentials': true},
   );
 }
@@ -23,9 +32,28 @@ BaseOptions apiBaseOptions({required String baseUrl, required bool isWeb}) {
 /// Solo los repositorios lo leen: las vistas y los ViewModels nunca ven sus
 /// tipos (CLAUDE.md §7).
 final memoriesApiProvider = Provider<MemoriesApi>((ref) {
-  final options = apiBaseOptions(
-    baseUrl: ref.watch(apiBaseUrlProvider),
-    isWeb: kIsWeb,
+  final tokenStore = ref.watch(tokenStoreProvider);
+  final dio = Dio(
+    apiBaseOptions(baseUrl: ref.watch(apiBaseUrlProvider), isWeb: kIsWeb),
   );
-  return MemoriesApi(dio: Dio(options));
+  // Lista vacía: sin los cuatro interceptores de autenticación que el
+  // cliente generado agrega por defecto; el token lo pone SessionInterceptor.
+  final api = MemoriesApi(dio: dio, interceptors: const []);
+  // La renovación usa este mismo cliente. No se pide authRepositoryProvider:
+  // depende de este provider y formaría un ciclo.
+  final refresher = AuthRepository(
+    api: api.getAuthApi(),
+    tokenStore: tokenStore,
+    platform: currentClientPlatform,
+  );
+  dio.interceptors.add(
+    SessionInterceptor(
+      dio: dio,
+      tokenStore: tokenStore,
+      refresh: refresher.refresh,
+      onSessionExpired: () =>
+          ref.read(sessionExpiredSignalProvider.notifier).emit(),
+    ),
+  );
+  return api;
 });

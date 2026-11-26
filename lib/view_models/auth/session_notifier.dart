@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/api_error.dart';
 import '../../repositories/auth_repository.dart';
+import '../../repositories/session/session_expired_signal.dart';
 import '../../repositories/session/token_store.dart';
 
 /// Estado de la sesión de la app. Decide qué rutas se ven (design.md §4).
@@ -10,6 +11,7 @@ enum SessionStatus { checking, signedIn, signedOut }
 class SessionNotifier extends Notifier<SessionStatus> {
   @override
   SessionStatus build() {
+    ref.listen(sessionExpiredSignalProvider, (_, _) => sessionExpired());
     _restore();
     return SessionStatus.checking;
   }
