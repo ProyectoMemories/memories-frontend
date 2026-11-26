@@ -20,7 +20,7 @@ decisiones de `design.md` §2.
       tests con un doble del almacenamiento
 - [x] `AuthRepository`: login, refresh, logout, con errores propios por `code`
       (design §6) · tests con dio falso
-- [ ] Interceptor: renueva con `access_token_expired` y repite; una sola
+- [x] Interceptor: renueva con `access_token_expired` y repite; una sola
       renovación a la vez · test: dos 401 simultáneos = un refresh
 - [ ] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
       `ProviderContainer`

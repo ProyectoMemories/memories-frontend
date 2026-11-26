@@ -100,8 +100,15 @@ sesión, las de auth llevan a `/home`.
     código compartido.
 - Interceptor de dio: con `access_token_expired` renueva y repite la petición.
   Las renovaciones van de una en una: la primera crea un `Completer` y las demás
-  esperan su resultado. Si la renovación falla, borra los tokens y
-  `SessionNotifier` pasa a "sin sesión".
+  esperan su resultado. Si la renovación falla porque la sesión ya no vale
+  (`invalid_refresh_token` o `not_authenticated`), borra los tokens y
+  `SessionNotifier` pasa a "sin sesión". Sin conexión o con un 5xx, la petición
+  falla con `network` y la sesión se mantiene: perder la señal no cierra la
+  sesión (HU-06).
+- El token de acceso solo se manda a los endpoints que el OpenAPI marca con
+  seguridad `HTTPBearer` (el cliente generado lo indica en `extra['secure']`).
+  Una petición que ya se repitió no vuelve a renovar: si otra vez llega
+  `access_token_expired`, falla.
 - Android en depuración: la API local va por `http://10.0.2.2:8001`, así que se
   permite tráfico sin cifrar **solo** en `debug` (configuración de red de
   depuración), nunca en `release`.
