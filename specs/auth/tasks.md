@@ -12,7 +12,7 @@ decisiones de `design.md` §2.
       `flutter analyze` pasa
 - [x] La app depende del paquete local · test: un test crea el cliente con la
       `API_BASE_URL` de `app_config.dart`
-- [ ] README y CLAUDE.md §4: cómo regenerar el cliente cuando cambia la API
+- [x] README y CLAUDE.md §4: cómo regenerar el cliente cuando cambia la API
 
 ## F4 · Sesión (`feat/auth-session`)
 

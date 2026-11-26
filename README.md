@@ -50,6 +50,27 @@ flutter analyze                       # análisis estático
 flutter test                          # pruebas
 ```
 
+## Cliente de la API
+
+El cliente vive en `packages/memories_api`. Se genera desde el OpenAPI del
+backend con openapi-generator (generador `dart-dio`, imagen Docker fijada en el
+script) y **no se edita a mano**. Va guardado en el repo, así que el CI no
+necesita Docker ni el backend.
+
+Regenéralo cuando el backend cambie un endpoint o un modelo:
+
+1. Abre Docker Desktop y levanta el backend (`docker compose up -d` en
+   `memories-backend`). Comprueba que http://localhost:8001/openapi.json abre.
+2. Desde la raíz de este repo:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File packages/generate_memories_api.ps1
+   ```
+
+3. Corre `flutter pub get`, las pruebas de arriba y revisa el diff de
+   `packages/memories_api`: muestra qué cambió en el contrato de la API.
+4. Sube el resultado en el mismo PR que lo usa.
+
 ## Cómo contribuir
 
 1. Crea tu rama desde `main`: `feat/…`, `fix/…`, `chore/…` o `docs/…`.
