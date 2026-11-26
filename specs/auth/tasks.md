@@ -32,7 +32,7 @@ decisiones de `design.md` §2.
 
 ## F5 · Iniciar sesión (`feat/auth-login`) · cierra P20
 
-- [ ] Tema (`lib/views/theme/`) con los tokens de design §3 y las fuentes
+- [x] Tema (`lib/views/theme/`) con los tokens de design §3 y las fuentes
       confirmadas · test: el `ThemeData` usa los tokens
 - [ ] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
       widget tests

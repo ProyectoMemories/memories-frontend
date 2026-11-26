@@ -31,29 +31,42 @@ en la tarea que las agrega. openapi-generator con la imagen Docker
 
 ## 3. Tema del mockup ("Recuerdos 4.0 Movil")
 
-Colores medidos sobre el mockup (pueden diferir unos tonos por la compresión).
-Van en `lib/views/theme/` como `ThemeData` y constantes; ninguna pantalla
-escribe un color suelto.
+Colores tomados del **código** del mockup (las pantallas V4 del lienzo), no
+de una captura: son exactos. La primera versión de esta tabla se midió sobre
+una imagen y difería unos tonos; se corrigió en F5. Van en `lib/views/theme/`
+como `ThemeData` y constantes; ninguna pantalla escribe un color suelto.
 
 | Token | Color | Uso |
 |---|---|---|
 | `background` | `#F4ECDF` | Fondo de las pantallas |
-| `surface` | `#FFFAF4` | Campos, tarjetas, pie con el botón principal |
-| `primary` | `#7A2E29` | Botón principal, enlaces, barra de progreso activa, casilla marcada |
-| `onPrimary` | `#FFFFFF` | Texto del botón principal |
-| `textPrimary` | `#1F1712` | Títulos y texto de los campos |
-| `textSecondary` | `#6B6156` | Subtítulos, ayudas y placeholders |
-| `label` | `#3B2D2D` | Etiquetas de campo en mayúsculas |
-| `border` | `#E7DFD4` | Borde de los campos |
-| `iconTile` | `#EADDCA` | Cuadro del ícono (correo, candado) |
-| `progressTrack` | `#DED2BC` | Barra de progreso inactiva |
-| `toast` | `#2A211C` | Fondo de los avisos ("Correo reenviado") |
+| `surface` | `#FFFBF4` | Campos, tarjetas, barra inferior, pie con el botón principal |
+| `primary` | `#7A2E2A` | Botón principal, enlaces, barra de progreso activa, casilla marcada |
+| `primaryPressed` | `#5E2220` | Botón principal y enlaces al pasar el mouse o presionar |
+| `onPrimary` | `#FFFBF4` | Texto del botón principal |
+| `textPrimary` | `#2B211B` | Títulos y texto de los campos |
+| `textSecondary` | `#6B5B4E` | Subtítulos, ayudas, placeholders, ítems inactivos de la barra |
+| `label` | `#5A4A3E` | Etiquetas de campo en mayúsculas |
+| `border` | `#DCCDB8` | Borde de los campos |
+| `divider` | `#E7DAC6` | Líneas entre filas y borde de la barra inferior |
+| `iconTile` | `#EADDC9` | Cuadro del ícono (correo, candado), botón de buscar, selector de pestañas |
+| `progressTrack` | `#E3D3BC` | Barra de progreso inactiva |
+| `toast` | `#2B211B` | Fondo de los avisos ("Correo reenviado") |
+| `toastIcon` | `#E2A93B` | Ícono de los avisos |
+| `danger` | `#A3261F` | Acciones que borran ("Eliminar cuenta") |
+
+Medidas del mockup: campos de 52 px de alto con radio 14 y borde de 1,5 px;
+botones de 54 px con radio 16; etiquetas de 13 px en peso 800; texto de los
+campos de 16 px en peso 600; títulos en Fraunces 700 (38 px en Iniciar sesión,
+30 px en Inicio y Perfil, 28 px en avisos de pantalla completa).
 
 Tipografía **[DECIDIDO]** (D79): **Fraunces** para títulos (serif cálida, con
 aire de libro, encaja con "guardar el significado") y **Nunito Sans** para el
 texto (sans de terminaciones suaves, legible en tamaños chicos). Las dos tienen
 licencia OFL y salen de `google/fonts`; se empaquetan en `assets/fonts/` junto a
-su `OFL.txt`.
+su `OFL.txt`. `google/fonts` solo las trae variables, y en Flutter el peso de
+una fuente variable no sigue a `fontWeight`; por eso se empaquetan versiones
+fijas de los pesos del mockup (Fraunces 500, 700 y 500 cursiva; Nunito Sans
+400, 600, 700 y 800). Cómo se generan: `assets/fonts/README.md`.
 
 Componentes compartidos (en `lib/views/widgets/`): campo con etiqueta en
 mayúsculas y texto de ayuda o error; campo de contraseña con botón para mostrar
