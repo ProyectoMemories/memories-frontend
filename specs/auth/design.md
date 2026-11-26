@@ -94,8 +94,10 @@ sesión, las de auth llevan a `/home`.
 - Tokens (`lib/repositories/session/`):
   - Android: los dos tokens en `flutter_secure_storage`.
   - Web: el de acceso solo en memoria; el de renovación lo maneja el navegador
-    en la cookie `memories_refresh`. El adaptador web de dio va con
-    `withCredentials: true` (sin eso el navegador no guarda ni envía la cookie).
+    en la cookie `memories_refresh`. dio va con `withCredentials: true` en el
+    `extra` de sus opciones base, que el adaptador web lee en cada petición
+    (sin eso el navegador no guarda ni envía la cookie). Así se prueba sin
+    importar el adaptador del navegador en los tests.
   - `platform` en login: `android` o `web` según `kIsWeb`, sin `dart:io` en
     código compartido.
 - Interceptor de dio: con `access_token_expired` renueva y repite la petición.

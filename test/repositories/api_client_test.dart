@@ -1,8 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/app_config.dart';
 import 'package:memories/repositories/api_client.dart';
+import 'package:memories_api/memories_api.dart';
+
+import 'fake_http_adapter.dart';
 
 void main() {
   group('memoriesApiProvider', () {
@@ -17,6 +21,37 @@ void main() {
 
       expect(api.dio.options.baseUrl, 'http://10.0.2.2:8001');
     });
+  });
+
+  group('apiBaseOptions', () {
+    test('en web manda la cookie de sesión (withCredentials)', () {
+      final options = apiBaseOptions(baseUrl: 'http://api.test', isWeb: true);
+
+      // El adaptador web de dio lee extra['withCredentials'] en cada
+      // petición; sin eso el navegador no guarda ni envía la cookie.
+      expect(options.extra['withCredentials'], isTrue);
+    });
+
+    test('en Android no lo necesita: el token viaja en el cuerpo', () {
+      final options = apiBaseOptions(baseUrl: 'http://api.test', isWeb: false);
+
+      expect(options.extra.containsKey('withCredentials'), isFalse);
+    });
+
+    test(
+      'una petición del cliente generado lleva withCredentials y secure',
+      () async {
+        final adapter = FakeHttpAdapter((_) async => jsonReply(204));
+        final dio = Dio(apiBaseOptions(baseUrl: 'http://api.test', isWeb: true))
+          ..httpClientAdapter = adapter;
+
+        await MemoriesApi(dio: dio).getAuthApi().logoutApiV1AuthLogoutPost();
+
+        final extra = adapter.requests.single.extra;
+        expect(extra['withCredentials'], isTrue);
+        expect(extra.containsKey('secure'), isTrue);
+      },
+    );
   });
 
   group('apiBaseUrlProvider', () {
