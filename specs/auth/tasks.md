@@ -16,7 +16,7 @@ decisiones de `design.md` §2.
 
 ## F4 · Sesión (`feat/auth-session`)
 
-- [ ] `TokenStore`: Android con `flutter_secure_storage`; web solo en memoria ·
+- [x] `TokenStore`: Android con `flutter_secure_storage`; web solo en memoria ·
       tests con un doble del almacenamiento
 - [ ] `AuthRepository`: login, refresh, logout, con errores propios por `code`
       (design §6) · tests con dio falso
