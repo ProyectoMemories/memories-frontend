@@ -1,10 +1,10 @@
 # Auth en la app — requisitos
 
-Estado: borrador
+Estado: aprobada (2026-11-26, D79)
 
 - Fuente: Lista de requisitos (RF-01, RF-03, RF-04, RF-05, RF-23, RF-24),
   05-reglas-de-negocio (RN-08, RN-10, RN-19, RN-50, RN-67), 01-decisiones
-  (D22, D40, D51, D56, D57, D60, D62, D65, D70, D73, D74, D77, D78).
+  (D22, D40, D51, D56, D57, D60, D62, D65, D70, D73, D74, D77, D78, D79).
 - Mockup: "Memories — Mockup v3", página "Recuerdos 4.0 Movil" (D50), flujo
   "7 · Cuenta" y pantalla "Inicio: álbumes".
 - Backend: `memories-backend/specs/auth` (ya en `main`). Contrato en
@@ -86,7 +86,7 @@ Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
 ## HU-05 · Cambiar la contraseña con sesión iniciada (D73) · entrada "Cambiar contraseña" en "Perfil"
 
 - **Dado** Perfil, **cuando** pulso "Cambiar contraseña", **entonces** veo la
-  contraseña actual, la nueva y su repetición. **[PROPUESTA]** El mockup tiene
+  contraseña actual, la nueva y su repetición. (Aprobado con la spec.) El mockup tiene
   la entrada pero no la pantalla: se arma con el estilo de "Nueva contraseña".
 - **Dado** la contraseña actual incorrecta, **cuando** guardo, **entonces** veo
   el error en ese campo (`current_password_incorrect`, 422, D73).

@@ -16,9 +16,9 @@ Riverpod (D13, D57) y la estructura del CLAUDE.md §5.
 Al cerrar F7: `integration_test` del recorrido completo (registro → verificación
 → login → cambiar contraseña → logout) contra el Docker del backend.
 
-## 2. Decisiones que este diseño necesita (se aprueban con la spec)
+## 2. Decisiones de este diseño ([DECIDIDO], D79)
 
-| # | [PROPUESTA] | Por qué |
+| # | Decisión | Por qué |
 |---|---|---|
 | 1 | Cliente generado en un paquete local `packages/memories_api` (carpeta de primer nivel nueva), guardado en el repo y regenerado a mano cuando cambia la API | El CI no necesita Java ni el backend para compilar; el diff del PR muestra qué cambió en el contrato |
 | 2 | `go_router` para la navegación | La web necesita URLs reales: `/verify-email?token=` (D65) y `/reset-password?token=` (D73) |
@@ -49,9 +49,11 @@ escribe un color suelto.
 | `progressTrack` | `#DED2BC` | Barra de progreso inactiva |
 | `toast` | `#2A211C` | Fondo de los avisos ("Correo reenviado") |
 
-Tipografía **[HIPÓTESIS]**: títulos en una serif de display (parecida a Fraunces)
-y texto en una sans redondeada (parecida a Nunito Sans). Hay que confirmar los
-nombres con Joey en el canvas antes de F5.
+Tipografía **[DECIDIDO]** (D79): **Fraunces** para títulos (serif cálida, con
+aire de libro, encaja con "guardar el significado") y **Nunito Sans** para el
+texto (sans de terminaciones suaves, legible en tamaños chicos). Las dos tienen
+licencia OFL y salen de `google/fonts`; se empaquetan en `assets/fonts/` junto a
+su `OFL.txt`.
 
 Componentes compartidos (en `lib/views/widgets/`): campo con etiqueta en
 mayúsculas y texto de ayuda o error; campo de contraseña con botón para mostrar
@@ -73,12 +75,12 @@ Rutas en inglés; las dos que abre el correo las fija el backend (D65, D73).
 | `/register/access` | Registro 2: acceso | `RegisterViewModel` | enviando, error por campo, listo → `/check-email` |
 | `/register/underage` | Menor de 14 | — | — |
 | `/check-email` | Verifica tu correo | `CheckEmailViewModel` | reenviando, reenviado (aviso) |
-| `/verify-email?token=` | **[PROPUESTA]** con el estilo de "Verifica tu correo": "Correo verificado" o "El enlace venció" | `VerifyEmailViewModel` | verificando, verificado, vencido o usado |
+| `/verify-email?token=` | Aprobada con la spec: estilo de "Verifica tu correo": "Correo verificado" o "El enlace venció" | `VerifyEmailViewModel` | verificando, verificado, vencido o usado |
 | `/forgot-password` | Recuperar contraseña | `ForgotPasswordViewModel` | enviando, enviado (aviso) |
 | `/reset-password?token=` | Nueva contraseña | `ResetPasswordViewModel` | enviando, no coinciden, enlace vencido, listo → `/login` con aviso |
 | `/home` | Inicio: álbumes (sin álbumes) | — | — |
 | `/profile` | Perfil (solo "Cambiar contraseña" y "Cerrar sesión") | `ProfileViewModel` | cerrando sesión |
-| `/profile/password` | **[PROPUESTA]** con el estilo de "Nueva contraseña" más "Contraseña actual" | `ChangePasswordViewModel` | enviando, actual incorrecta, listo → `/login` con aviso |
+| `/profile/password` | Aprobada con la spec: estilo de "Nueva contraseña" más "Contraseña actual" | `ChangePasswordViewModel` | enviando, actual incorrecta, listo → `/login` con aviso |
 
 `SessionNotifier` (estado de la app: comprobando, con sesión, sin sesión) decide
 las redirecciones de `go_router`: sin sesión solo se ven las rutas de auth; con
@@ -126,7 +128,7 @@ sesión, las de auth llevan a `/home`.
 
 - **Campos de contraseña sin dibujar en el mockup** ("Registro 2" y "Nueva
   contraseña" muestran un bloque gris): se usan los mismos campos con botón de
-  mostrar u ocultar **[PROPUESTA]**.
+  mostrar u ocultar (aprobado con la spec).
 - **Sin endpoint para leer el perfil:** la cabecera de Perfil y el nombre del
   saludo de Inicio esperan al módulo `users` (D78).
 - **Tipografía sin confirmar** (§3): si cambia, solo se toca el tema.
