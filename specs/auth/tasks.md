@@ -22,7 +22,7 @@ decisiones de `design.md` §2.
       (design §6) · tests con dio falso
 - [x] Interceptor: renueva con `access_token_expired` y repite; una sola
       renovación a la vez · test: dos 401 simultáneos = un refresh
-- [ ] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
+- [x] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
       `ProviderContainer`
 - [ ] Web: dio con `withCredentials: true` · test del adaptador configurado
 - [ ] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
