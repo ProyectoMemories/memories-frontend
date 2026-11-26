@@ -17,7 +17,9 @@ void main() {
 
       expect(api.dio.options.baseUrl, 'http://10.0.2.2:8001');
     });
+  });
 
+  group('apiBaseUrlProvider', () {
     test('sin --dart-define, leer la URL falla en vez de usar un valor por '
         'defecto', () {
       final container = ProviderContainer.test();

@@ -71,6 +71,13 @@ Regenéralo cuando el backend cambie un endpoint o un modelo:
    `packages/memories_api`: muestra qué cambió en el contrato de la API.
 4. Sube el resultado en el mismo PR que lo usa.
 
+- El script borra `packages/memories_api` antes de generar. Si falla a la mitad
+  (Docker cerrado, backend apagado), recupéralo con
+  `git restore packages/memories_api`.
+- `packages/memories_api/pubspec.lock` se sube **a propósito**, aunque el
+  `.gitignore` generado lo ignore: fija las versiones de `build_runner` y
+  `built_value_generator` para que regenerar otro día dé el mismo código.
+
 ## Cómo contribuir
 
 1. Crea tu rama desde `main`: `feat/…`, `fix/…`, `chore/…` o `docs/…`.
