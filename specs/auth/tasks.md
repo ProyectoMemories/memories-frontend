@@ -34,7 +34,7 @@ decisiones de `design.md` §2.
 
 - [x] Tema (`lib/views/theme/`) con los tokens de design §3 y las fuentes
       confirmadas · test: el `ThemeData` usa los tokens
-- [ ] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
+- [x] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
       widget tests
 - [ ] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
 - [ ] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
