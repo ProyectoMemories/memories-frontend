@@ -37,7 +37,7 @@ decisiones de `design.md` §2.
 - [x] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
       widget tests
 - [x] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
-- [ ] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
+- [x] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
 - [ ] Inicio y Perfil provisionales; cerrar sesión · tests
 - [ ] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
       emulador
@@ -46,6 +46,10 @@ decisiones de `design.md` §2.
 
 ## F6 · Registro y verificación (`feat/auth-register`)
 
+- [ ] Botón "Crear cuenta" en Iniciar sesión (F5 no lo muestra porque la
+      pantalla no existía) · widget test
+- [ ] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
+      aviso de F5 · test del ViewModel
 - [ ] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
 - [ ] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
 - [ ] Revisa tu correo y reenviar · tests
@@ -54,6 +58,8 @@ decisiones de `design.md` §2.
 
 ## F7 · Contraseñas (`feat/auth-password`)
 
+- [ ] Enlace "¿Olvidaste tu contraseña?" en Iniciar sesión (F5 no lo
+      muestra porque la pantalla no existía) · widget test
 - [ ] Recuperar contraseña y aviso de enlace enviado · tests
 - [ ] `/reset-password?token=` (no coinciden, vencido, listo) · tests
 - [ ] Cambiar contraseña desde Perfil (actual incorrecta, listo) · tests

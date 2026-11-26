@@ -21,6 +21,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Iniciar sesión'), findsOneWidget);
+    // Pantalla "Iniciar sesión" del mockup.
+    expect(find.text('Memories'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
   });
 }

@@ -18,6 +18,16 @@ abstract final class AppColors {
   static const toast = Color(0xFF2B211B);
   static const toastIcon = Color(0xFFE2A93B);
   static const danger = Color(0xFFA3261F);
+
+  /// Fotos de ejemplo de las polaroids de Iniciar sesión.
+  static const polaroidPhotos = [
+    Color(0xFF8B6446),
+    Color(0xFFA0785A),
+    Color(0xFF6E5A48),
+  ];
+
+  /// Sombra de las polaroids: `textPrimary` al 14 %.
+  static const polaroidShadow = Color(0x242B211B);
 }
 
 /// Familias declaradas en `pubspec.yaml` (D79).

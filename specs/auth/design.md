@@ -148,7 +148,7 @@ sesión, las de auth llevan a `/home`.
 | `code` | HTTP | Dónde | Mensaje |
 |---|---|---|---|
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
-| `email_not_verified` | 403 | Login | Va a "Revisa tu correo" |
+| `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |
 | `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`) |
 | `username_taken` / `email_taken` | 409 | Registro 2 | En el campo: "Ese nombre de usuario ya existe." / "Ese correo ya tiene una cuenta." |
@@ -160,6 +160,7 @@ sesión, las de auth llevan a `/home`.
 | `invalid_refresh_token`, `not_authenticated` | 401 | Interceptor | Sin mensaje: vuelve a Iniciar sesión |
 | `origin_not_allowed` | 403 | Interceptor (web) | Error de configuración: la app web debe correr en el puerto 3000 |
 | Sin conexión o 5xx | — | Todas | "No pudimos conectar. Revisa tu conexión e inténtalo de nuevo." |
+| Otro `code` (no previsto) | — | Todas | "Algo salió mal. Inténtalo de nuevo." |
 
 ## 7. Riesgos
 
