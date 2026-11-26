@@ -11,6 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: 3.4.3
+  # Cliente generado de la API (D79); se regenera con
+  # packages/generate_memories_api.ps1.
+  memories_api:
+    path: packages/memories_api
 
 dev_dependencies:
   flutter_test:

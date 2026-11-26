@@ -14,6 +14,9 @@ analyzer:
     - build/**
     - android/**
     - web/**
+    # Cliente generado desde el OpenAPI: no se edita a mano, así que no se le
+    # aplican los lints de la app.
+    - packages/**
 
 linter:
   # The lint rules applied to this project can be customized in the

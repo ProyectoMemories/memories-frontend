@@ -6,13 +6,13 @@ decisiones de `design.md` §2.
 
 ## F3 · Cliente de la API (`feat/api-client`)
 
-- [ ] Script o comando documentado que genera `packages/memories_api` con la
+- [x] Script o comando documentado que genera `packages/memories_api` con la
       imagen fijada de openapi-generator (`dart-dio`) desde
       `http://localhost:8001/openapi.json` · test: el paquete compila y
       `flutter analyze` pasa
-- [ ] La app depende del paquete local · test: un test crea el cliente con la
+- [x] La app depende del paquete local · test: un test crea el cliente con la
       `API_BASE_URL` de `app_config.dart`
-- [ ] README y CLAUDE.md §4: cómo regenerar el cliente cuando cambia la API
+- [x] README y CLAUDE.md §4: cómo regenerar el cliente cuando cambia la API
 
 ## F4 · Sesión (`feat/auth-session`)
 
@@ -25,6 +25,10 @@ decisiones de `design.md` §2.
 - [ ] `SessionNotifier` (comprobando / con sesión / sin sesión) · test con
       `ProviderContainer`
 - [ ] Web: dio con `withCredentials: true` · test del adaptador configurado
+- [ ] `memoriesApiProvider` crea su propio `Dio` con timeouts explícitos (hoy
+      usa los del generador: connect 5 s, receive 3 s) y solo el interceptor de
+      sesión, sin los cuatro de autenticación que agrega el cliente generado ·
+      test de las opciones y los interceptores configurados
 
 ## F5 · Iniciar sesión (`feat/auth-login`) · cierra P20
 

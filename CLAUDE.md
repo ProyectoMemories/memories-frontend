@@ -93,8 +93,16 @@ flutter build web --dart-define=API_BASE_URL=...
 flutter build apk --debug --dart-define=API_BASE_URL=...
 ```
 
+```powershell
+# Regenerar el cliente de la API (Docker abierto y backend en localhost:8001)
+powershell -ExecutionPolicy Bypass -File packages/generate_memories_api.ps1
+```
+
 - La URL de la API entra solo por `--dart-define=API_BASE_URL`; `main.dart` la
   valida al arrancar (`lib/app_config.dart`).
+- El cliente se regenera cuando cambia la API, nunca se edita a mano. El script
+  fija la versión de openapi-generator; el diff de `packages/memories_api` va
+  en el mismo PR que lo usa.
 - No inventes comandos que el repositorio todavía no tiene. Las carpetas de
   plataforma se crearon **sin iOS** (`--platforms=android,web`); no agregues
   otras.
@@ -117,10 +125,11 @@ lib/
 ├── views/<feature>/          pantallas: solo muestran estado y envían acciones
 ├── view_models/<feature>/    Notifiers de Riverpod: estado y lógica de cada pantalla
 └── repositories/             único punto de acceso a la API (usa el cliente generado)
+packages/
+├── generate_memories_api.ps1 regenera el cliente desde el OpenAPI
+└── memories_api/             cliente generado (D79): no se edita a mano
 test/                         espejo de lib/
 ```
-
-- La carpeta exacta del cliente generado se define en `feat/api-client`.
 - No crees carpetas ni archivos de primer nivel sin preguntar.
 - Nunca subas `.env`, `CLAUDE.local.md` ni `.claude/settings.local.json`.
 - Nombres de archivos, clases y variables **en inglés**, sin tildes.
