@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Cliente HTTP del cliente generado; la app lo usa para errores e interceptores.
+  dio: 5.11.1
   flutter_riverpod: 3.4.3
   # Tokens de sesión en Android (Keystore), D56 y D79. En web no se usa.
   flutter_secure_storage: 11.2.0

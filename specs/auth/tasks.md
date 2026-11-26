@@ -18,7 +18,7 @@ decisiones de `design.md` §2.
 
 - [x] `TokenStore`: Android con `flutter_secure_storage`; web solo en memoria ·
       tests con un doble del almacenamiento
-- [ ] `AuthRepository`: login, refresh, logout, con errores propios por `code`
+- [x] `AuthRepository`: login, refresh, logout, con errores propios por `code`
       (design §6) · tests con dio falso
 - [ ] Interceptor: renueva con `access_token_expired` y repite; una sola
       renovación a la vez · test: dos 401 simultáneos = un refresh
