@@ -38,7 +38,7 @@ decisiones de `design.md` §2.
       widget tests
 - [x] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
 - [x] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
-- [ ] Inicio y Perfil provisionales; cerrar sesión · tests
+- [x] Inicio y Perfil provisionales; cerrar sesión · tests
 - [ ] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
       emulador
 - [ ] Prueba manual en Chrome (puerto 3000) y en el emulador contra el Docker
@@ -62,6 +62,7 @@ decisiones de `design.md` §2.
       muestra porque la pantalla no existía) · widget test
 - [ ] Recuperar contraseña y aviso de enlace enviado · tests
 - [ ] `/reset-password?token=` (no coinciden, vencido, listo) · tests
-- [ ] Cambiar contraseña desde Perfil (actual incorrecta, listo) · tests
+- [ ] Fila "Cambiar contraseña" en Perfil (F5 no la muestra porque la
+      pantalla no existía) y la pantalla (actual incorrecta, listo) · tests
 - [ ] `integration_test` del recorrido completo contra el backend local
 - [ ] Prueba manual de todo auth en Chrome y en el emulador (D78)
