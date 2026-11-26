@@ -6,7 +6,7 @@ decisiones de `design.md` §2.
 
 ## F3 · Cliente de la API (`feat/api-client`)
 
-- [ ] Script o comando documentado que genera `packages/memories_api` con la
+- [x] Script o comando documentado que genera `packages/memories_api` con la
       imagen fijada de openapi-generator (`dart-dio`) desde
       `http://localhost:8001/openapi.json` · test: el paquete compila y
       `flutter analyze` pasa
