@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/api_error.dart';
@@ -43,13 +44,28 @@ class SessionNotifier extends Notifier<SessionStatus> {
   /// Al abrir la app: en Android los tokens siguen guardados; en web el de
   /// acceso se perdió al recargar y se pide otro con la cookie (HU-06).
   Future<void> _restore() async {
-    final tokens = await ref.read(tokenStoreProvider).read();
-    if (tokens != null) return _set(SessionStatus.signedIn);
+    // Se leen antes del primer await: después el notifier podría ya no
+    // existir (Riverpod 3 no deja usar ref entonces).
+    final tokenStore = ref.read(tokenStoreProvider);
+    final repository = _repository;
     try {
-      await _repository.refresh();
+      if (await tokenStore.read() != null) return _set(SessionStatus.signedIn);
+      await repository.refresh();
       _set(SessionStatus.signedIn);
     } on ApiError {
       // Sin cookie válida, o sin conexión en web: hay que iniciar sesión.
+      _set(SessionStatus.signedOut);
+    } catch (error, stackTrace) {
+      // Por ejemplo, un Keystore dañado: sin esto la app se quedaría en
+      // "comprobando" para siempre.
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'memories',
+          context: ErrorDescription('al recuperar la sesión'),
+        ),
+      );
       _set(SessionStatus.signedOut);
     }
   }

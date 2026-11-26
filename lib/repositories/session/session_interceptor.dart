@@ -1,17 +1,15 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api_error.dart';
 import 'token_store.dart';
 
-/// Pone el token de acceso en cada petición que lo pide y lo renueva solo
-/// cuando la API responde `access_token_expired` (D56, CLAUDE.md §8).
+/// Pone el token de acceso en cada petición que lo pide, lo renueva cuando la
+/// API responde `access_token_expired` y cierra la sesión cuando la API dice
+/// que ya no vale (D56, CLAUDE.md §8, design.md §5).
 ///
-/// Las renovaciones van de una en una: si dos peticiones fallan a la vez, la
-/// primera renueva y las demás esperan su resultado. Dos renovaciones con el
-/// mismo token se ven como reuso y la API revoca la sesión.
+/// Las renovaciones van de una en una porque [_refresh] pasa por el
+/// `RefreshGate` compartido (lo arma `memoriesApiProvider`).
 class SessionInterceptor extends Interceptor {
   SessionInterceptor({
     required this._dio,
@@ -22,18 +20,10 @@ class SessionInterceptor extends Interceptor {
 
   static const _retriedKey = 'memories.session_retried';
 
-  /// Códigos con los que la sesión ya no vale y hay que volver al login.
-  static const _sessionGoneCodes = {
-    ApiErrorCode.invalidRefreshToken,
-    ApiErrorCode.notAuthenticated,
-  };
-
   final Dio _dio;
   final TokenStore _tokenStore;
   final Future<SessionTokens> Function() _refresh;
   final void Function() _onSessionExpired;
-
-  Completer<SessionTokens?>? _refreshing;
 
   @override
   Future<void> onRequest(
@@ -53,12 +43,32 @@ class SessionInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final request = err.requestOptions;
-    if (!_isAccessTokenExpired(err) || request.extra[_retriedKey] == true) {
+    final sentToken = _bearerOf(request);
+
+    // Sesión revocada en otro dispositivo o cuenta desactivada: el token de
+    // acceso todavía no vence, pero la API ya no lo acepta.
+    if (_hasCode(err, ApiErrorCode.notAuthenticated) && sentToken != null) {
+      await _endSession();
+      return handler.next(err);
+    }
+    if (!_hasCode(err, ApiErrorCode.accessTokenExpired) ||
+        request.extra[_retriedKey] == true) {
       return handler.next(err);
     }
 
-    final tokens = await _renewedTokens(sentToken: _bearerOf(request));
-    if (tokens == null) return handler.next(err);
+    final SessionTokens tokens;
+    try {
+      tokens = await _renewedTokens(sentToken: sentToken);
+    } on ApiError catch (failure) {
+      if (failure.code == ApiErrorCode.invalidRefreshToken) await _endSession();
+      // Sin conexión la sesión se mantiene; la petición falla con `network`.
+      return handler.next(_renewalFailed(request, failure));
+    } catch (error, stackTrace) {
+      _report(error, stackTrace, 'al renovar el token de acceso');
+      return handler.next(
+        _renewalFailed(request, const ApiError(ApiErrorCode.unknown)),
+      );
+    }
 
     _setBearer(request, tokens.accessToken);
     request.extra[_retriedKey] = true;
@@ -69,50 +79,52 @@ class SessionInterceptor extends Interceptor {
     }
   }
 
-  /// Tokens con los que repetir la petición, o null si no se pudo renovar.
-  Future<SessionTokens?> _renewedTokens({required String? sentToken}) async {
-    final inFlight = _refreshing;
-    if (inFlight != null) return inFlight.future;
-
-    // La petición salió antes de que otra renovara: basta con el token nuevo.
+  /// Tokens con los que repetir la petición.
+  Future<SessionTokens> _renewedTokens({required String? sentToken}) async {
     final current = await _tokenStore.read();
+    if (current == null && sentToken != null) {
+      // La sesión terminó mientras la petición iba en camino.
+      throw const ApiError(ApiErrorCode.invalidRefreshToken);
+    }
+    // La petición salió antes de que otra renovara: basta con el token nuevo.
     if (current != null && current.accessToken != sentToken) return current;
-
-    // Otra petición pudo empezar a renovar mientras se leía el token.
-    final completer = _refreshing;
-    if (completer != null) return completer.future;
-    return _startRefresh();
+    return _refresh();
   }
 
-  Future<SessionTokens?> _startRefresh() async {
-    final completer = _refreshing = Completer<SessionTokens?>();
+  /// Borra los tokens y avisa. Nunca lanza: el interceptor siempre tiene que
+  /// responder la petición.
+  Future<void> _endSession() async {
     try {
-      final tokens = await _refresh();
-      completer.complete(tokens);
-    } on ApiError catch (error) {
-      if (_sessionGoneCodes.contains(error.code)) {
-        await _tokenStore.clear();
-        _onSessionExpired();
-      }
-      // Sin conexión no se cierra la sesión: la petición falla y ya.
-      completer.complete(null);
+      await _tokenStore.clear();
     } catch (error, stackTrace) {
-      // Un fallo que no viene de la API es un error del código: se reporta
-      // en vez de lanzarlo, porque las peticiones que esperan a esta
-      // renovación quedarían colgadas.
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'memories',
-          context: ErrorDescription('al renovar el token de acceso'),
-        ),
-      );
-      completer.complete(null);
-    } finally {
-      _refreshing = null;
+      _report(error, stackTrace, 'al borrar los tokens de la sesión');
     }
-    return completer.future;
+    try {
+      _onSessionExpired();
+    } catch (error, stackTrace) {
+      _report(error, stackTrace, 'al avisar que la sesión terminó');
+    }
+  }
+
+  /// La petición falla con el error de la renovación, para que el repositorio
+  /// lo traduzca a `network` o `invalidRefreshToken` y no a "token vencido".
+  static DioException _renewalFailed(RequestOptions request, ApiError cause) {
+    return DioException(
+      requestOptions: request,
+      error: cause,
+      message: 'No se pudo renovar la sesión (${cause.code.name}).',
+    );
+  }
+
+  static void _report(Object error, StackTrace stackTrace, String context) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'memories',
+        context: ErrorDescription(context),
+      ),
+    );
   }
 
   static bool _needsAccessToken(RequestOptions options) {
@@ -120,11 +132,11 @@ class SessionInterceptor extends Interceptor {
     return secure is List && secure.isNotEmpty;
   }
 
-  static bool _isAccessTokenExpired(DioException error) {
+  static bool _hasCode(DioException error, ApiErrorCode code) {
     final body = error.response?.data;
     return error.response?.statusCode == 401 &&
         body is Map &&
-        body['code'] == ApiErrorCode.accessTokenExpired.wireName;
+        body['code'] == code.wireName;
   }
 
   static void _setBearer(RequestOptions options, String accessToken) {

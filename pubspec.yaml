@@ -14,6 +14,9 @@ dependencies:
   dio: 5.11.1
   flutter_riverpod: 3.4.3
   # Tokens de sesión en Android (Keystore), D56 y D79. En web no se usa.
+  # Trae jni y jni_flutter (transitivas), fijadas solo en pubspec.lock en 1.1.2
+  # y 1.0.4+1 porque las últimas tenían menos de dos semanas (D79). Revisa sus
+  # fechas antes de un `flutter pub upgrade`.
   flutter_secure_storage: 11.2.0
   # Cliente generado de la API (D79); se regenera con
   # packages/generate_memories_api.ps1.

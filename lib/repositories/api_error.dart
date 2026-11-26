@@ -43,8 +43,12 @@ class ApiError implements Exception {
 
   /// Traduce el error de dio al de la app.
   factory ApiError.fromDio(DioException error) {
+    // El interceptor deja así el error de una renovación que falló.
+    final cause = error.error;
+    if (cause is ApiError) return cause;
     final response = error.response;
-    if (response == null || response.statusCode! >= 500) {
+    final status = response?.statusCode;
+    if (response == null || status == null || status >= 500) {
       return const ApiError(ApiErrorCode.network);
     }
     final body = response.data;

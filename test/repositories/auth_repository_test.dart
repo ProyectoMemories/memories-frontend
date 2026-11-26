@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
 import 'package:memories/repositories/auth_repository.dart';
+import 'package:memories/repositories/session/refresh_gate.dart';
 import 'package:memories/repositories/session/token_store.dart';
 import 'package:memories_api/memories_api.dart';
 
@@ -10,6 +13,7 @@ import 'fake_http_adapter.dart';
 void main() {
   late FakeHttpAdapter adapter;
   late InMemoryTokenStore store;
+  late RefreshGate gate;
 
   AuthRepository buildRepository(ClientPlatform platform) {
     final dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
@@ -18,12 +22,14 @@ void main() {
       api: MemoriesApi(dio: dio).getAuthApi(),
       tokenStore: store,
       platform: platform,
+      refreshGate: gate,
     );
   }
 
   setUp(() {
     adapter = FakeHttpAdapter((_) async => jsonReply(204));
     store = InMemoryTokenStore();
+    gate = RefreshGate();
   });
 
   group('login', () {
@@ -167,6 +173,20 @@ void main() {
       expect(adapter.requests, isEmpty);
     });
 
+    test('dos renovaciones a la vez = una sola petición a la API', () async {
+      store.tokens = const SessionTokens(
+        accessToken: 'acceso-1',
+        refreshToken: 'sesion.secreto-1',
+      );
+      adapter.handler = (_) async =>
+          jsonReply(200, tokenBody('acceso-2', 'sesion.secreto-2'));
+      final repository = buildRepository(ClientPlatform.android);
+
+      await Future.wait([repository.refresh(), repository.refresh()]);
+
+      expect(adapter.requests, hasLength(1));
+    });
+
     test('sesión revocada o vencida: invalidRefreshToken', () async {
       store.tokens = const SessionTokens(
         accessToken: 'acceso-1',
@@ -198,6 +218,36 @@ void main() {
         expect(store.tokens, isNull);
       },
     );
+
+    test('con una renovación en curso, espera y revoca con el token '
+        'rotado', () async {
+      store.tokens = const SessionTokens(
+        accessToken: 'acceso-1',
+        refreshToken: 'sesion.secreto-1',
+      );
+      final refreshAnswer = Completer<void>();
+      adapter.handler = (request) async {
+        if (request.path.endsWith('/refresh')) {
+          await refreshAnswer.future;
+          return jsonReply(200, tokenBody('acceso-2', 'sesion.secreto-2'));
+        }
+        return jsonReply(204);
+      };
+      final repository = buildRepository(ClientPlatform.android);
+
+      final renewal = repository.refresh();
+      await pumpEventQueue();
+      final loggingOut = repository.logout();
+      await pumpEventQueue();
+      refreshAnswer.complete();
+      await Future.wait([renewal, loggingOut]);
+
+      // Con el token viejo la API vería reuso; y la renovación tardía no
+      // vuelve a guardar tokens después de cerrar sesión.
+      expect(adapter.requests.last.path, '/api/v1/auth/logout');
+      expect(adapter.requests.last.data, {'refresh_token': 'sesion.secreto-2'});
+      expect(store.tokens, isNull);
+    });
 
     test('en web va sin cuerpo', () async {
       store.tokens = const SessionTokens(accessToken: 'acceso-1');

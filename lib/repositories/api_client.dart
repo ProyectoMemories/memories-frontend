@@ -5,6 +5,7 @@ import 'package:memories_api/memories_api.dart';
 
 import '../app_config.dart';
 import 'auth_repository.dart';
+import 'session/refresh_gate.dart';
 import 'session/session_expired_signal.dart';
 import 'session/session_interceptor.dart';
 import 'session/token_store.dart';
@@ -36,23 +37,27 @@ final memoriesApiProvider = Provider<MemoriesApi>((ref) {
   final dio = Dio(
     apiBaseOptions(baseUrl: ref.watch(apiBaseUrlProvider), isWeb: kIsWeb),
   );
+  ref.onDispose(dio.close);
   // Lista vacía: sin los cuatro interceptores de autenticación que el
   // cliente generado agrega por defecto; el token lo pone SessionInterceptor.
   final api = MemoriesApi(dio: dio, interceptors: const []);
   // La renovación usa este mismo cliente. No se pide authRepositoryProvider:
-  // depende de este provider y formaría un ciclo.
+  // depende de este provider y formaría un ciclo. Comparte el RefreshGate con
+  // él, así las renovaciones siguen yendo de una en una.
   final refresher = AuthRepository(
     api: api.getAuthApi(),
     tokenStore: tokenStore,
     platform: currentClientPlatform,
+    refreshGate: ref.watch(refreshGateProvider),
   );
   dio.interceptors.add(
     SessionInterceptor(
       dio: dio,
       tokenStore: tokenStore,
       refresh: refresher.refresh,
-      onSessionExpired: () =>
-          ref.read(sessionExpiredSignalProvider.notifier).emit(),
+      onSessionExpired: () {
+        if (ref.mounted) ref.read(sessionExpiredSignalProvider.notifier).emit();
+      },
     ),
   );
   return api;

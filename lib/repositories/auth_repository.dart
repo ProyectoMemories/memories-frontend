@@ -5,6 +5,7 @@ import 'package:memories_api/memories_api.dart';
 
 import 'api_client.dart';
 import 'api_error.dart';
+import 'session/refresh_gate.dart';
 import 'session/token_store.dart';
 
 /// Único punto de la app que usa los endpoints de sesión (D56).
@@ -16,11 +17,13 @@ class AuthRepository {
     required this._api,
     required this._tokenStore,
     required this._platform,
+    required this._refreshGate,
   });
 
   final AuthApi _api;
   final TokenStore _tokenStore;
   final ClientPlatform _platform;
+  final RefreshGate _refreshGate;
 
   bool get _isWeb => _platform == ClientPlatform.web;
 
@@ -37,23 +40,20 @@ class AuthRepository {
     final response = await _call(
       () => _api.loginApiV1AuthLoginPost(loginRequest: request),
     );
-    await _saveTokens(response.data!);
+    await _saveTokens(response.data);
   }
 
   /// Pide un token de acceso nuevo; la API rota también el de renovación.
-  Future<SessionTokens> refresh() async {
-    final response = await _call(
-      () async => _api.refreshApiV1AuthRefreshPost(
-        refreshTokenRequest: await _refreshTokenRequest(),
-      ),
-    );
-    return _saveTokens(response.data!);
-  }
+  /// Si ya hay una renovación en curso, espera esa en vez de pedir otra.
+  Future<SessionTokens> refresh() => _refreshGate.run(_refreshNow);
 
   /// Revoca la sesión en la API y borra los tokens locales, aunque la API
   /// falle: quien cierra sesión no debe quedar dentro.
   Future<void> logout() async {
     try {
+      // Con una renovación en curso, el token guardado está por rotar: se
+      // espera para mandar el nuevo (el viejo se vería como reuso).
+      await _refreshGate.idle();
       final request = await _refreshTokenRequest(required: false);
       await _call(
         () => _api.logoutApiV1AuthLogoutPost(refreshTokenRequest: request),
@@ -76,7 +76,18 @@ class AuthRepository {
     return RefreshTokenRequest((b) => b..refreshToken = refreshToken);
   }
 
-  Future<SessionTokens> _saveTokens(TokenResponse body) async {
+  Future<SessionTokens> _refreshNow() async {
+    final response = await _call(
+      () async => _api.refreshApiV1AuthRefreshPost(
+        refreshTokenRequest: await _refreshTokenRequest(),
+      ),
+    );
+    return _saveTokens(response.data);
+  }
+
+  Future<SessionTokens> _saveTokens(TokenResponse? body) async {
+    // Un 200 sin cuerpo no debería llegar; si llega, es un error de la API.
+    if (body == null) throw const ApiError(ApiErrorCode.unknown);
     final tokens = SessionTokens(
       accessToken: body.accessToken,
       refreshToken: body.refreshToken,
@@ -104,5 +115,6 @@ final authRepositoryProvider = Provider<AuthRepository>(
     api: ref.watch(memoriesApiProvider).getAuthApi(),
     tokenStore: ref.watch(tokenStoreProvider),
     platform: currentClientPlatform,
+    refreshGate: ref.watch(refreshGateProvider),
   ),
 );

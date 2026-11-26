@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
@@ -27,6 +28,12 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() => onLogout();
+}
+
+/// TokenStore cuyo `read` falla, como un Keystore dañado.
+class _BrokenReadTokenStore extends InMemoryTokenStore {
+  @override
+  Future<SessionTokens?> read() async => throw StateError('Keystore dañado');
 }
 
 void main() {
@@ -76,6 +83,18 @@ void main() {
 
     test('sin sesión que recuperar, queda sin sesión', () async {
       expect(await restoredStatus(buildContainer()), SessionStatus.signedOut);
+    });
+
+    test('si leer los tokens falla (Keystore dañado), no se queda en '
+        'comprobando', () async {
+      final reported = <FlutterErrorDetails>[];
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = reported.add;
+      addTearDown(() => FlutterError.onError = previousOnError);
+      store = _BrokenReadTokenStore();
+
+      expect(await restoredStatus(buildContainer()), SessionStatus.signedOut);
+      expect(reported.single.exception, isA<StateError>());
     });
 
     test('sin conexión al recuperar, queda sin sesión', () async {

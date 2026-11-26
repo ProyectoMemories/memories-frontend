@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
+import 'package:memories/repositories/session/refresh_gate.dart';
 import 'package:memories/repositories/session/session_interceptor.dart';
 import 'package:memories/repositories/session/token_store.dart';
 
@@ -20,6 +21,14 @@ final _secured = Options(
 
 final _public = Options(extra: {'secure': <Map<String, String>>[]});
 
+/// TokenStore cuyo `clear` falla, como un Keystore dañado.
+class _BrokenClearTokenStore extends InMemoryTokenStore {
+  _BrokenClearTokenStore(super.tokens);
+
+  @override
+  Future<void> clear() async => throw StateError('Keystore dañado');
+}
+
 void main() {
   late Dio dio;
   late FakeHttpAdapter adapter;
@@ -28,20 +37,49 @@ void main() {
   late Future<SessionTokens> Function() refresh;
   late int expiredCalls;
 
-  /// Responde 200 si llega el token nuevo y 401 vencido con cualquier otro.
+  const oldTokens = SessionTokens(
+    accessToken: 'acceso-viejo',
+    refreshToken: 'sesion.secreto-1',
+  );
+
+  /// Responde 200 si llega [token] y 401 vencido con cualquier otro.
   Future<ResponseBody> acceptsOnly(String token, RequestOptions request) async {
     return request.headers['Authorization'] == 'Bearer $token'
         ? jsonReply(200, {'ok': true})
         : apiError(401, 'access_token_expired');
   }
 
-  setUp(() {
-    store = InMemoryTokenStore(
-      const SessionTokens(
-        accessToken: 'acceso-viejo',
-        refreshToken: 'sesion.secreto-1',
+  /// Arma el dio con el interceptor como lo hace `memoriesApiProvider`: la
+  /// renovación pasa por un RefreshGate.
+  void buildDio(InMemoryTokenStore tokenStore) {
+    store = tokenStore;
+    final gate = RefreshGate();
+    dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
+      ..httpClientAdapter = adapter;
+    dio.interceptors.add(
+      SessionInterceptor(
+        dio: dio,
+        tokenStore: store,
+        refresh: () => gate.run(() {
+          refreshCalls++;
+          return refresh();
+        }),
+        onSessionExpired: () => expiredCalls++,
       ),
     );
+  }
+
+  /// Hace la petición y devuelve el código que vería el repositorio.
+  Future<ApiErrorCode> failureCode(String path) async {
+    try {
+      await dio.post<Object>(path, options: _secured);
+    } on DioException catch (error) {
+      return ApiError.fromDio(error).code;
+    }
+    fail('La petición debía fallar');
+  }
+
+  setUp(() {
     refreshCalls = 0;
     expiredCalls = 0;
     refresh = () async {
@@ -55,19 +93,7 @@ void main() {
     adapter = FakeHttpAdapter(
       (request) => acceptsOnly('acceso-nuevo', request),
     );
-    dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
-      ..httpClientAdapter = adapter;
-    dio.interceptors.add(
-      SessionInterceptor(
-        dio: dio,
-        tokenStore: store,
-        refresh: () {
-          refreshCalls++;
-          return refresh();
-        },
-        onSessionExpired: () => expiredCalls++,
-      ),
-    );
+    buildDio(InMemoryTokenStore(oldTokens));
   });
 
   test('pone el token solo en los endpoints que lo piden', () async {
@@ -141,62 +167,51 @@ void main() {
     expect(slowTokensSent, ['Bearer acceso-viejo', 'Bearer acceso-nuevo']);
   });
 
-  test('sesión revocada: borra los tokens y avisa que se cerró', () async {
+  test('renovación rechazada: cierra la sesión y falla con '
+      'invalidRefreshToken', () async {
     refresh = () async =>
         throw const ApiError(ApiErrorCode.invalidRefreshToken);
 
-    await expectLater(
-      dio.post<Object>('/privado', options: _secured),
-      throwsA(isA<DioException>()),
-    );
-
+    expect(await failureCode('/privado'), ApiErrorCode.invalidRefreshToken);
     expect(store.tokens, isNull);
     expect(expiredCalls, 1);
   });
 
-  test('sin conexión al renovar: falla pero mantiene la sesión', () async {
-    refresh = () async => throw const ApiError(ApiErrorCode.network);
+  test(
+    'sin conexión al renovar: falla con network y mantiene la sesión',
+    () async {
+      refresh = () async => throw const ApiError(ApiErrorCode.network);
 
-    await expectLater(
-      dio.post<Object>('/privado', options: _secured),
-      throwsA(isA<DioException>()),
-    );
+      expect(await failureCode('/privado'), ApiErrorCode.network);
+      expect(store.tokens?.refreshToken, 'sesion.secreto-1');
+      expect(expiredCalls, 0);
+    },
+  );
 
-    expect(store.tokens?.refreshToken, 'sesion.secreto-1');
+  test('not_authenticated con token (sesión revocada en otro dispositivo): '
+      'cierra la sesión sin renovar', () async {
+    adapter.handler = (_) async => apiError(401, 'not_authenticated');
+
+    expect(await failureCode('/privado'), ApiErrorCode.notAuthenticated);
+    expect(refreshCalls, 0);
+    expect(store.tokens, isNull);
+    expect(expiredCalls, 1);
+  });
+
+  test('not_authenticated sin token enviado no toca la sesión', () async {
+    buildDio(InMemoryTokenStore());
+    adapter.handler = (_) async => apiError(401, 'not_authenticated');
+
+    expect(await failureCode('/privado'), ApiErrorCode.notAuthenticated);
     expect(expiredCalls, 0);
   });
 
-  test('un fallo inesperado al renovar no deja peticiones colgadas', () async {
-    final reported = <FlutterErrorDetails>[];
-    final previousOnError = FlutterError.onError;
-    FlutterError.onError = reported.add;
-    addTearDown(() => FlutterError.onError = previousOnError);
-    refresh = () async => throw StateError('falla inesperada');
+  test('otros errores pasan tal cual, sin renovar', () async {
+    adapter.handler = (_) async => apiError(403, 'account_suspended');
 
-    await expectLater(
-      Future.wait([
-        dio.post<Object>('/uno', options: _secured),
-        dio.post<Object>('/dos', options: _secured),
-      ]),
-      throwsA(isA<DioException>()),
-    ).timeout(const Duration(seconds: 2));
-
-    // Se reporta para que no pase en silencio, y la sesión se mantiene.
-    // Future.wait espera las dos: ninguna quedó colgada. La segunda puede
-    // llegar cuando la primera renovación ya falló e intentar la suya.
-    expect(reported, isNotEmpty);
-    expect(reported.map((r) => r.exception), everyElement(isA<StateError>()));
-    expect(store.tokens?.refreshToken, 'sesion.secreto-1');
-  });
-
-  test('otro 401 (no vencido) pasa tal cual, sin renovar', () async {
-    adapter.handler = (_) async => apiError(401, 'not_authenticated');
-
-    await expectLater(
-      dio.post<Object>('/privado', options: _secured),
-      throwsA(isA<DioException>()),
-    );
+    expect(await failureCode('/privado'), ApiErrorCode.accountSuspended);
     expect(refreshCalls, 0);
+    expect(expiredCalls, 0);
   });
 
   test(
@@ -204,12 +219,63 @@ void main() {
     () async {
       adapter.handler = (_) async => apiError(401, 'access_token_expired');
 
-      await expectLater(
-        dio.post<Object>('/privado', options: _secured),
-        throwsA(isA<DioException>()),
-      );
+      expect(await failureCode('/privado'), ApiErrorCode.accessTokenExpired);
       expect(refreshCalls, 1);
       expect(adapter.requests, hasLength(2));
     },
   );
+
+  test('un 401 tardío después de cerrar sesión no renueva', () async {
+    final slowAnswer = Completer<void>();
+    adapter.handler = (request) async {
+      await slowAnswer.future;
+      return apiError(401, 'access_token_expired');
+    };
+
+    final late401 = failureCode('/privado');
+    await pumpEventQueue();
+    await store.clear();
+    slowAnswer.complete();
+
+    expect(await late401, ApiErrorCode.invalidRefreshToken);
+    expect(refreshCalls, 0);
+  });
+
+  group('fallos inesperados (reportados, nunca dejan peticiones colgadas)', () {
+    late List<FlutterErrorDetails> reported;
+
+    setUp(() {
+      reported = [];
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = reported.add;
+      addTearDown(() => FlutterError.onError = previousOnError);
+    });
+
+    test('al renovar: falla con unknown y mantiene la sesión', () async {
+      refresh = () async => throw StateError('falla inesperada');
+
+      final codes = await Future.wait([
+        failureCode('/uno'),
+        failureCode('/dos'),
+      ]).timeout(const Duration(seconds: 2));
+
+      expect(codes, everyElement(ApiErrorCode.unknown));
+      expect(reported, isNotEmpty);
+      expect(reported.map((r) => r.exception), everyElement(isA<StateError>()));
+      expect(store.tokens?.refreshToken, 'sesion.secreto-1');
+    });
+
+    test('al borrar los tokens: igual avisa que la sesión terminó', () async {
+      buildDio(_BrokenClearTokenStore(oldTokens));
+      refresh = () async =>
+          throw const ApiError(ApiErrorCode.invalidRefreshToken);
+
+      final code = await failureCode('/privado')
+          .timeout(const Duration(seconds: 2));
+
+      expect(code, ApiErrorCode.invalidRefreshToken);
+      expect(expiredCalls, 1);
+      expect(reported.single.exception, isA<StateError>());
+    });
+  });
 }
