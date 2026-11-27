@@ -13,6 +13,9 @@ dependencies:
   # URLs sin '#' en web: los correos abren /verify-email y /reset-password.
   flutter_web_plugins:
     sdk: flutter
+  # Textos de Material en español (calendario de la fecha de nacimiento).
+  flutter_localizations:
+    sdk: flutter
   # Cliente HTTP del cliente generado; la app lo usa para errores e interceptores.
   dio: 5.11.1
   flutter_riverpod: 3.4.3

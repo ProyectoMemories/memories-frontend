@@ -135,6 +135,14 @@ const _textTheme = TextTheme(
     letterSpacing: -0.28,
     color: AppColors.textPrimary,
   ),
+  // Títulos de los formularios del registro ("Cuéntanos quién eres").
+  titleLarge: TextStyle(
+    fontFamily: AppFonts.titles,
+    fontSize: 25,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.25,
+    color: AppColors.textPrimary,
+  ),
   // Nombres en tarjetas.
   titleMedium: TextStyle(
     fontFamily: AppFonts.titles,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
@@ -23,6 +24,11 @@ class MemoriesApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Memories',
       theme: buildAppTheme(),
+      // La app es solo en español: así también salen en español los textos
+      // de Material (calendario, menús, avisos de accesibilidad).
+      locale: const Locale('es'),
+      supportedLocales: const [Locale('es')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: ref.watch(routerProvider),
     );
   }

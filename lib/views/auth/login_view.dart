@@ -2,17 +2,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../view_models/auth/login_view_model.dart';
+import '../app_router.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
 import '../widgets/app_password_field.dart';
 import '../widgets/app_text_field.dart';
+import '../widgets/form_error_text.dart';
 
 /// Iniciar sesión (HU-01), pantalla "Iniciar sesión" del mockup.
 ///
-/// "¿Olvidaste tu contraseña?" y "Crear cuenta" llegan en F7 y F6, con sus
-/// pantallas (tasks.md).
+/// "¿Olvidaste tu contraseña?" llega en F7, con su pantalla (tasks.md).
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
@@ -40,6 +42,12 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(loginViewModelProvider);
+    // Cuenta sin verificar: a "Revisa tu correo" (HU-01).
+    ref.listen(loginViewModelProvider, (previous, next) {
+      if (next.unverified && previous?.unverified != true) {
+        context.go(AppRoutes.checkEmail, extra: next.unverifiedEmail);
+      }
+    });
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
@@ -91,9 +99,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     ),
                     if (state.errorMessage case final message?) ...[
                       const SizedBox(height: 14),
-                      _ErrorText(
+                      FormErrorText(
                         message,
-                        announcement: state.errorAnnouncement ?? message,
+                        announcement: state.errorAnnouncement,
                       ),
                     ],
                     const SizedBox(height: 24),
@@ -103,37 +111,18 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       onPressed: _submit,
                       isLoading: state.isSubmitting,
                     ),
+                    const SizedBox(height: 12),
+                    SecondaryButton(
+                      label: 'Crear cuenta',
+                      onPressed: state.isSubmitting
+                          ? null
+                          : () => context.go(AppRoutes.register),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Error del envío. `liveRegion` hace que el lector de pantalla lo anuncie
-/// apenas aparece; anuncia [announcement] y no el texto visible, que en la
-/// cuenta regresiva cambia cada segundo.
-class _ErrorText extends StatelessWidget {
-  const _ErrorText(this.message, {required this.announcement});
-
-  final String message;
-  final String announcement;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      label: announcement,
-      child: ExcludeSemantics(
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: AppColors.danger),
         ),
       ),
     );

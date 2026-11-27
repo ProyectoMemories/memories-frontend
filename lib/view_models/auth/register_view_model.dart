@@ -155,7 +155,7 @@ class RegisterViewModel extends Notifier<RegisterState> {
               acceptsPrivacyPolicy: true,
             ),
           );
-      if (ref.mounted) state = const RegisterState();
+      // El estado se descarta solo al salir del registro.
       return SubmitResult.registered;
     } on ApiError catch (error) {
       if (!ref.mounted) return SubmitResult.failed;

@@ -46,16 +46,16 @@ decisiones de `design.md` §2.
 
 ## F6 · Registro y verificación (`feat/auth-register`)
 
-- [ ] Botón "Crear cuenta" en Iniciar sesión (F5 no lo muestra porque la
+- [x] Botón "Crear cuenta" en Iniciar sesión (F5 no lo muestra porque la
       pantalla no existía) · widget test
-- [ ] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
+- [x] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
       aviso de F5 · test del ViewModel
 - [x] "Prueba en N segundos" descuenta en vivo y desaparece al llegar a
       cero (pedido en la prueba manual de F5) · test del ViewModel
-- [ ] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
-- [ ] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
-- [ ] Revisa tu correo y reenviar · tests
-- [ ] `/verify-email?token=` · tests de verificado y vencido
+- [x] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
+- [x] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
+- [x] Revisa tu correo y reenviar · tests
+- [x] `/verify-email?token=` · tests de verificado y vencido
 - [ ] Prueba manual: registro real y enlace desde Mailpit
 
 ## F7 · Contraseñas (`feat/auth-password`)

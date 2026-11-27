@@ -3,9 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../view_models/auth/session_notifier.dart';
+import 'auth/check_email_view.dart';
 import 'auth/login_view.dart';
 import 'auth/profile_view.dart';
+import 'auth/register_access_view.dart';
+import 'auth/register_view.dart';
 import 'auth/splash_view.dart';
+import 'auth/underage_view.dart';
+import 'auth/verify_email_view.dart';
 import 'home_view.dart';
 import 'not_found_view.dart';
 
@@ -14,19 +19,25 @@ import 'not_found_view.dart';
 abstract final class AppRoutes {
   static const splash = '/';
   static const login = '/login';
+  static const register = '/register';
+  static const registerAccess = '/register/access';
+  static const registerUnderage = '/register/underage';
+  static const checkEmail = '/check-email';
+  static const verifyEmail = '/verify-email';
   static const home = '/home';
   static const profile = '/profile';
 }
 
-/// Rutas que se ven sin sesión. Incluye las que llegan en F6 y F7 para que
-/// la regla no cambie al agregarlas.
+/// Rutas que se ven sin sesión. Incluye las que llegan en F7 para que la
+/// regla no cambie al agregarlas. Con sesión llevan a Inicio: `/verify-email`
+/// también, porque quien tiene sesión ya está verificado (design §7).
 const _authPaths = {
   AppRoutes.login,
-  '/register',
-  '/register/access',
-  '/register/underage',
-  '/check-email',
-  '/verify-email',
+  AppRoutes.register,
+  AppRoutes.registerAccess,
+  AppRoutes.registerUnderage,
+  AppRoutes.checkEmail,
+  AppRoutes.verifyEmail,
   '/forgot-password',
   '/reset-password',
 };
@@ -92,6 +103,34 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginView(),
+      ),
+      // Antes que /register: es otra pantalla, no una subruta. Al llegar aquí
+      // se descarta el registro entero ("No guardamos los datos").
+      GoRoute(
+        path: AppRoutes.registerUnderage,
+        builder: (context, state) => const UnderageView(),
+      ),
+      // El paso 2 es subruta del 1: atrás vuelve al paso 1 con lo escrito.
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (context, state) => const RegisterView(),
+        routes: [
+          GoRoute(
+            path: 'access',
+            builder: (context, state) => const RegisterAccessView(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.checkEmail,
+        builder: (context, state) => CheckEmailView(
+          email: state.extra is String ? state.extra as String : null,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.verifyEmail,
+        builder: (context, state) =>
+            VerifyEmailView(token: state.uri.queryParameters['token']),
       ),
       GoRoute(
         path: AppRoutes.home,
