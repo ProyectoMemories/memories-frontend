@@ -50,7 +50,7 @@ decisiones de `design.md` §2.
       pantalla no existía) · widget test
 - [ ] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
       aviso de F5 · test del ViewModel
-- [ ] "Prueba en N segundos" descuenta en vivo y desaparece al llegar a
+- [x] "Prueba en N segundos" descuenta en vivo y desaparece al llegar a
       cero (pedido en la prueba manual de F5) · test del ViewModel
 - [ ] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
 - [ ] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests

@@ -153,7 +153,7 @@ sesión, las de auth llevan a `/home`.
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
 | `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |
-| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`) |
+| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`). N baja cada segundo y el aviso desaparece en cero; el lector de pantalla lo anuncia una sola vez |
 | `username_taken` / `email_taken` | 409 | Registro 2 | En el campo: "Ese nombre de usuario ya existe." / "Ese correo ya tiene una cuenta." |
 | `password_length` / `password_too_common` | 422 | Registro 2, contraseñas | En el campo: "Usa de 8 a 64 caracteres." / "Es una contraseña muy común; elige otra." |
 | `underage` | 422 | Registro | Va a "Menor de 14" |

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +13,7 @@ class LoginState {
     this.errorMessage,
     this.identifierError,
     this.passwordError,
+    this._errorAnnouncement,
   });
 
   final bool isSubmitting;
@@ -18,14 +21,25 @@ class LoginState {
   /// Mensaje del envío para la persona (design.md §6), o null si no hay error.
   final String? errorMessage;
 
+  /// Lo que anuncia el lector de pantalla. En la cuenta regresiva se queda
+  /// con el primer mensaje: si cambiara cada segundo, lo anunciaría cada
+  /// segundo.
+  String? get errorAnnouncement => _errorAnnouncement ?? errorMessage;
+  final String? _errorAnnouncement;
+
   /// Qué falta en cada campo, revisado antes de llamar a la API.
   final String? identifierError;
   final String? passwordError;
 }
 
 class LoginViewModel extends Notifier<LoginState> {
+  Timer? _countdown;
+
   @override
-  LoginState build() => const LoginState();
+  LoginState build() {
+    ref.onDispose(_stopCountdown);
+    return const LoginState();
+  }
 
   /// Inicia sesión. Si sale bien, `SessionNotifier` pasa a "con sesión" y el
   /// router lleva a Inicio; esta pantalla no navega.
@@ -35,6 +49,7 @@ class LoginViewModel extends Notifier<LoginState> {
   }) async {
     // El botón ya no acepta toques mientras espera; esto cubre el Enter.
     if (state.isSubmitting) return;
+    _stopCountdown();
     final identifierError = identifier.trim().isEmpty
         ? 'Escribe tu correo o nombre de usuario.'
         : null;
@@ -54,7 +69,14 @@ class LoginViewModel extends Notifier<LoginState> {
           .logIn(identifier: identifier.trim(), password: password);
       if (ref.mounted) state = const LoginState();
     } on ApiError catch (error) {
-      if (ref.mounted) state = LoginState(errorMessage: _messageFor(error));
+      if (!ref.mounted) return;
+      state = LoginState(errorMessage: _messageFor(error));
+      final seconds = error.retryAfter?.inSeconds;
+      if (error.code == ApiErrorCode.tooManyRequests &&
+          seconds != null &&
+          seconds > 0) {
+        _startCountdown(seconds);
+      }
     } catch (error, stackTrace) {
       // Por ejemplo, el Keystore al guardar los tokens: sin esto el botón se
       // quedaría cargando para siempre.
@@ -72,6 +94,30 @@ class LoginViewModel extends Notifier<LoginState> {
         );
       }
     }
+  }
+
+  /// "Prueba en N segundos" baja de uno en uno y desaparece en cero, cuando
+  /// ya se puede volver a intentar.
+  void _startCountdown(int seconds) {
+    final announcement = state.errorMessage;
+    var remaining = seconds;
+    _countdown = Timer.periodic(const Duration(seconds: 1), (timer) {
+      remaining--;
+      if (remaining <= 0) {
+        _stopCountdown();
+        state = const LoginState();
+        return;
+      }
+      state = LoginState(
+        errorMessage: _tooManyRequests(Duration(seconds: remaining)),
+        errorAnnouncement: announcement,
+      );
+    });
+  }
+
+  void _stopCountdown() {
+    _countdown?.cancel();
+    _countdown = null;
   }
 
   static String _messageFor(ApiError error) {

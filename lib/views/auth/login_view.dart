@@ -91,7 +91,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     ),
                     if (state.errorMessage case final message?) ...[
                       const SizedBox(height: 14),
-                      _ErrorText(message),
+                      _ErrorText(
+                        message,
+                        announcement: state.errorAnnouncement ?? message,
+                      ),
                     ],
                     const SizedBox(height: 24),
                     // Siempre responde: si falta algo, el campo lo dice.
@@ -112,21 +115,26 @@ class _LoginViewState extends ConsumerState<LoginView> {
 }
 
 /// Error del envío. `liveRegion` hace que el lector de pantalla lo anuncie
-/// apenas aparece.
+/// apenas aparece; anuncia [announcement] y no el texto visible, que en la
+/// cuenta regresiva cambia cada segundo.
 class _ErrorText extends StatelessWidget {
-  const _ErrorText(this.message);
+  const _ErrorText(this.message, {required this.announcement});
 
   final String message;
+  final String announcement;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.labelMedium
-            ?.copyWith(color: AppColors.danger),
+      label: announcement,
+      child: ExcludeSemantics(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: AppColors.danger),
+        ),
       ),
     );
   }
