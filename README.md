@@ -52,12 +52,14 @@ flutter test                          # pruebas
 
 ## Probar el inicio de sesión contra el backend local
 
-Necesitas el backend con Docker (`docker compose up -d` en `memories-backend`)
-y una cuenta verificada. Mientras no exista la pantalla de registro (F6), crea
-la cuenta de prueba con la API. El script te pide la contraseña sin mostrarla
-(de 8 a 64 caracteres) y verifica la cuenta con el correo que llega a Mailpit.
-El correo no sale a internet: el backend local lo entrega a Mailpit.
-Usa un dominio normal: el backend rechaza los reservados como `.test`.
+**1. Levanta el backend** (`docker compose up -d` en `memories-backend`) y la
+app (ver "Cómo levantarla").
+
+**2. Entra con una cuenta verificada.** Si ya tienes una, usa esa y salta al
+paso 3. Si no, y mientras no exista la pantalla de registro (F6), créala con
+este script: te pide la contraseña sin mostrarla (de 8 a 64 caracteres), crea
+`prueba.f5` y la verifica con el correo que llega a Mailpit (no sale a
+internet).
 
 ```powershell
 $clave = Read-Host "Contraseña para la cuenta de prueba" -AsSecureString
@@ -80,15 +82,16 @@ Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/verify-email `
   -ContentType 'application/json' -Body (@{ token = $token } | ConvertTo-Json)
 ```
 
-Después entra con `prueba.f5` (o el correo) en Chrome y en el emulador:
+**3. Revisa esto, en Chrome y en el emulador:**
 
 | Qué haces | Qué debe pasar |
 |---|---|
-| Entras con una contraseña incorrecta | "El usuario o la contraseña no son correctos." |
-| Entras con los datos correctos | Llegas a Inicio ("Tus álbumes") |
-| Recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña (HU-06) |
-| Perfil → Cerrar sesión | Vuelves a Iniciar sesión; al recargar o reabrir, sigues fuera |
-| Seis intentos fallidos en un minuto | "Demasiados intentos. Prueba en N segundos." |
+| Entras con una contraseña incorrecta o un correo que no existe | "El usuario o la contraseña no son correctos." |
+| Entras con tus datos | Llegas a Inicio ("Tus álbumes") |
+| Ya en Inicio, recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña |
+| Perfil → Cerrar sesión | Vuelves a Iniciar sesión |
+| Después de salir, recargas o reabres | Sigues en Iniciar sesión |
+| Pones una contraseña incorrecta seis veces seguidas | "Demasiados intentos. Prueba en N segundos." |
 
 ## Cliente de la API
 

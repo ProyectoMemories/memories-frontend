@@ -80,6 +80,8 @@ auth se centran en una columna de unos 420 px.
 ## 4. Pantallas, rutas y ViewModels
 
 Rutas en inglés; las dos que abre el correo las fija el backend (D65, D73).
+En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
+`/verify-email?token=...`.
 
 | Ruta | Pantalla del mockup | ViewModel | Estados |
 |---|---|---|---|
