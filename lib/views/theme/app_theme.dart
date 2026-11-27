@@ -52,11 +52,20 @@ ThemeData buildAppTheme() {
         minimumSize: const WidgetStatePropertyAll(Size.fromHeight(54)),
         shape: WidgetStatePropertyAll(buttonShape),
         backgroundColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.pressed)
-              ? AppColors.primaryPressed
-              : AppColors.primary,
+          (states) => switch (states) {
+            // Desactivado se ve apagado, para que no parezca que no responde.
+            _ when states.contains(WidgetState.disabled) =>
+              AppColors.progressTrack,
+            _ when states.contains(WidgetState.pressed) =>
+              AppColors.primaryPressed,
+            _ => AppColors.primary,
+          },
         ),
-        foregroundColor: const WidgetStatePropertyAll(AppColors.onPrimary),
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.disabled)
+              ? AppColors.textSecondary
+              : AppColors.onPrimary,
+        ),
         textStyle: WidgetStatePropertyAll(_textTheme.labelLarge),
         elevation: const WidgetStatePropertyAll(0),
       ),

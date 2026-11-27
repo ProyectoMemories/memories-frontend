@@ -31,11 +31,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     super.dispose();
   }
 
-  bool get _isFilled =>
-      _identifier.text.trim().isNotEmpty && _password.text.isNotEmpty;
-
   void _submit() {
-    if (!_isFilled) return;
     ref
         .read(loginViewModelProvider.notifier)
         .submit(identifier: _identifier.text, password: _password.text);
@@ -81,6 +77,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         AutofillHints.username,
                         AutofillHints.email,
                       ],
+                      errorText: state.identifierError,
                       enabled: !state.isSubmitting,
                     ),
                     const SizedBox(height: 14),
@@ -89,6 +86,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       controller: _password,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _submit(),
+                      errorText: state.passwordError,
                       enabled: !state.isSubmitting,
                     ),
                     if (state.errorMessage case final message?) ...[
@@ -96,13 +94,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       _ErrorText(message),
                     ],
                     const SizedBox(height: 24),
-                    ListenableBuilder(
-                      listenable: Listenable.merge([_identifier, _password]),
-                      builder: (context, _) => PrimaryButton(
-                        label: 'Entrar',
-                        onPressed: _isFilled ? _submit : null,
-                        isLoading: state.isSubmitting,
-                      ),
+                    // Siempre responde: si falta algo, el campo lo dice.
+                    PrimaryButton(
+                      label: 'Entrar',
+                      onPressed: _submit,
+                      isLoading: state.isSubmitting,
                     ),
                   ],
                 ),

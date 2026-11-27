@@ -30,6 +30,8 @@ contraseña para ver mis álbumes.
   cuántos segundos esperar (`Retry-After`, D70, D77).
 - **Dado** que pulso "Entrar", **cuando** espera la respuesta, **entonces** el
   botón muestra que está cargando y no acepta otro toque.
+- **Dado** un campo vacío, **cuando** pulso "Entrar", **entonces** veo debajo de
+  ese campo qué falta y no se envía nada a la API.
 
 ## HU-02 · Crear cuenta en dos pasos (RF-04, RF-24, RF-23) · "Registro 1: datos" y "Registro 2: acceso"
 

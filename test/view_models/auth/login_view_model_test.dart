@@ -147,6 +147,42 @@ void main() {
     );
   });
 
+  test('sin contraseña: marca el campo y no llama a la API', () async {
+    await viewModel().submit(identifier: 'ana', password: '');
+
+    expect(state().passwordError, 'Escribe tu contraseña.');
+    expect(state().identifierError, isNull);
+    expect(logins, isEmpty);
+  });
+
+  test(
+    'sin usuario (o solo espacios): marca el campo y no llama a la API',
+    () async {
+      await viewModel().submit(identifier: '   ', password: 'clave-segura');
+
+      expect(state().identifierError, 'Escribe tu correo o nombre de usuario.');
+      expect(state().passwordError, isNull);
+      expect(logins, isEmpty);
+    },
+  );
+
+  test('con los dos vacíos marca los dos', () async {
+    await viewModel().submit(identifier: '', password: '');
+
+    expect(state().identifierError, isNotNull);
+    expect(state().passwordError, isNotNull);
+  });
+
+  test('al completar los campos, se borran sus errores', () async {
+    await viewModel().submit(identifier: '', password: '');
+
+    await viewModel().submit(identifier: 'ana', password: 'clave-segura');
+
+    expect(state().identifierError, isNull);
+    expect(state().passwordError, isNull);
+    expect(logins, hasLength(1));
+  });
+
   test('al volver a intentar, el error anterior se borra', () async {
     await errorFor(const ApiError(ApiErrorCode.invalidCredentials));
     repository.onLogin = () async {};

@@ -5,12 +5,21 @@ import 'session_notifier.dart';
 
 /// Estado de la pantalla Iniciar sesión (design.md §4).
 class LoginState {
-  const LoginState({this.isSubmitting = false, this.errorMessage});
+  const LoginState({
+    this.isSubmitting = false,
+    this.errorMessage,
+    this.identifierError,
+    this.passwordError,
+  });
 
   final bool isSubmitting;
 
-  /// Mensaje para la persona (design.md §6), o null si no hay error.
+  /// Mensaje del envío para la persona (design.md §6), o null si no hay error.
   final String? errorMessage;
+
+  /// Qué falta en cada campo, revisado antes de llamar a la API.
+  final String? identifierError;
+  final String? passwordError;
 }
 
 class LoginViewModel extends Notifier<LoginState> {
@@ -25,6 +34,17 @@ class LoginViewModel extends Notifier<LoginState> {
   }) async {
     // El botón ya no acepta toques mientras espera; esto cubre el Enter.
     if (state.isSubmitting) return;
+    final identifierError = identifier.trim().isEmpty
+        ? 'Escribe tu correo o nombre de usuario.'
+        : null;
+    final passwordError = password.isEmpty ? 'Escribe tu contraseña.' : null;
+    if (identifierError != null || passwordError != null) {
+      state = LoginState(
+        identifierError: identifierError,
+        passwordError: passwordError,
+      );
+      return;
+    }
     state = const LoginState(isSubmitting: true);
     try {
       await ref

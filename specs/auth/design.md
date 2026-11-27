@@ -85,7 +85,7 @@ En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
 
 | Ruta | Pantalla del mockup | ViewModel | Estados |
 |---|---|---|---|
-| `/login` | Iniciar sesión | `LoginViewModel` | inicial, enviando, error (mensaje), sin verificar → `/check-email` |
+| `/login` | Iniciar sesión | `LoginViewModel` | inicial, campo vacío (error en el campo), enviando, error (mensaje), sin verificar → `/check-email` |
 | `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | completo / incompleto, menor de 14 → `/register/underage` |
 | `/register/access` | Registro 2: acceso | `RegisterViewModel` | enviando, error por campo, listo → `/check-email` |
 | `/register/underage` | Menor de 14 | — | — |
@@ -149,6 +149,7 @@ sesión, las de auth llevan a `/home`.
 
 | `code` | HTTP | Dónde | Mensaje |
 |---|---|---|---|
+| (campo vacío, sin llamar a la API) | — | Login | En el campo: "Escribe tu correo o nombre de usuario." / "Escribe tu contraseña." |
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
 | `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |

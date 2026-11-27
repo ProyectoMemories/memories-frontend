@@ -52,6 +52,15 @@ void main() {
     expect(style.backgroundColor?.resolve({}), AppColors.primary);
   });
 
+  test('un botón principal desactivado se ve distinto del activo', () {
+    final style = theme.filledButtonTheme.style!;
+
+    expect(
+      style.backgroundColor?.resolve({WidgetState.disabled}),
+      isNot(AppColors.primary),
+    );
+  });
+
   test('las fuentes van empaquetadas, sin descargarse (D79)', () async {
     TestWidgetsFlutterBinding.ensureInitialized();
     for (final path in [

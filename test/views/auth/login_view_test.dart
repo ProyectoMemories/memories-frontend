@@ -62,18 +62,20 @@ void main() {
     expect(enterButton(), findsOneWidget);
   });
 
-  testWidgets('Entrar se activa con los dos campos llenos', (tester) async {
+  testWidgets('sin contraseña, Entrar marca el campo y no envía nada', (
+    tester,
+  ) async {
     final handle = tester.ensureSemantics();
     await pumpLogin(tester);
-    expect(enterEnabled(tester), isFalse);
+    // El botón siempre responde: un botón que no reacciona no explica nada.
+    expect(enterEnabled(tester), isTrue);
 
     await tester.enterText(field('Correo o nombre de usuario'), 'ana');
-    await tester.pump();
-    expect(enterEnabled(tester), isFalse);
+    await tester.tap(enterButton());
+    await tester.pumpAndSettle();
 
-    await tester.enterText(field('Contraseña'), 'clave-segura');
-    await tester.pump();
-    expect(enterEnabled(tester), isTrue);
+    expect(find.text('Escribe tu contraseña.'), findsOneWidget);
+    expect(repository.attempts, isEmpty);
     handle.dispose();
   });
 
