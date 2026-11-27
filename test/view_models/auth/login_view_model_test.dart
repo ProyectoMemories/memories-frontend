@@ -89,12 +89,28 @@ void main() {
     expect(container.read(sessionProvider), SessionStatus.signedOut);
   });
 
-  test('cuenta sin verificar: avisa que revise su correo', () async {
-    expect(
-      await errorFor(const ApiError(ApiErrorCode.emailNotVerified)),
-      'Tu cuenta todavía no está verificada. Revisa tu correo para '
-      'activarla.',
-    );
+  group('cuenta sin verificar (HU-01)', () {
+    test('entró con correo: va a Revisa tu correo con ese correo', () async {
+      repository.onLogin = () async =>
+          throw const ApiError(ApiErrorCode.emailNotVerified);
+      await viewModel().submit(
+        identifier: ' ana@ejemplo.pe ',
+        password: 'clave-segura',
+      );
+
+      expect(state().unverified, isTrue);
+      expect(state().unverifiedEmail, 'ana@ejemplo.pe');
+      expect(state().errorMessage, isNull);
+    });
+
+    test('entró con nombre de usuario: va sin correo', () async {
+      repository.onLogin = () async =>
+          throw const ApiError(ApiErrorCode.emailNotVerified);
+      await viewModel().submit(identifier: 'ana', password: 'clave-segura');
+
+      expect(state().unverified, isTrue);
+      expect(state().unverifiedEmail, isNull);
+    });
   });
 
   test('cuenta suspendida: lo dice sin más detalle', () async {

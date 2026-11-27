@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/api_error.dart';
+import 'auth_messages.dart';
 import 'session_notifier.dart';
 
 /// Estado de la pantalla Iniciar sesión (design.md §4).
@@ -14,6 +15,8 @@ class LoginState {
     this.identifierError,
     this.passwordError,
     this._errorAnnouncement,
+    this.unverified = false,
+    this.unverifiedEmail,
   });
 
   final bool isSubmitting;
@@ -30,6 +33,14 @@ class LoginState {
   /// Qué falta en cada campo, revisado antes de llamar a la API.
   final String? identifierError;
   final String? passwordError;
+
+  /// La cuenta existe pero falta verificar el correo: la vista lleva a
+  /// "Revisa tu correo" (HU-01).
+  final bool unverified;
+
+  /// El correo para reenviar el enlace, si se entró con correo. Con nombre
+  /// de usuario la app no lo conoce y "Revisa tu correo" lo pide.
+  final String? unverifiedEmail;
 }
 
 class LoginViewModel extends Notifier<LoginState> {
@@ -70,6 +81,14 @@ class LoginViewModel extends Notifier<LoginState> {
       if (ref.mounted) state = const LoginState();
     } on ApiError catch (error) {
       if (!ref.mounted) return;
+      if (error.code == ApiErrorCode.emailNotVerified) {
+        final typed = identifier.trim();
+        state = LoginState(
+          unverified: true,
+          unverifiedEmail: typed.contains('@') ? typed : null,
+        );
+        return;
+      }
       state = LoginState(errorMessage: _messageFor(error));
       final seconds = error.retryAfter?.inSeconds;
       if (error.code == ApiErrorCode.tooManyRequests &&
@@ -89,9 +108,7 @@ class LoginViewModel extends Notifier<LoginState> {
         ),
       );
       if (ref.mounted) {
-        state = const LoginState(
-          errorMessage: 'Algo salió mal. Inténtalo de nuevo.',
-        );
+        state = const LoginState(errorMessage: AuthMessages.unexpected);
       }
     }
   }
@@ -109,7 +126,9 @@ class LoginViewModel extends Notifier<LoginState> {
         return;
       }
       state = LoginState(
-        errorMessage: _tooManyRequests(Duration(seconds: remaining)),
+        errorMessage: AuthMessages.tooManyRequests(
+          Duration(seconds: remaining),
+        ),
         errorAnnouncement: announcement,
       );
     });
@@ -124,25 +143,9 @@ class LoginViewModel extends Notifier<LoginState> {
     return switch (error.code) {
       ApiErrorCode.invalidCredentials =>
         'El usuario o la contraseña no son correctos.',
-      // F6 cambia esto por ir a "Revisa tu correo" (design §6).
-      ApiErrorCode.emailNotVerified =>
-        'Tu cuenta todavía no está verificada. Revisa tu correo para '
-            'activarla.',
       ApiErrorCode.accountSuspended => 'Esta cuenta está suspendida.',
-      ApiErrorCode.tooManyRequests => _tooManyRequests(error.retryAfter),
-      ApiErrorCode.network =>
-        'No pudimos conectar. Revisa tu conexión e inténtalo de nuevo.',
-      _ => 'Algo salió mal. Inténtalo de nuevo.',
+      _ => AuthMessages.general(error),
     };
-  }
-
-  static String _tooManyRequests(Duration? retryAfter) {
-    final seconds = retryAfter?.inSeconds;
-    if (seconds == null || seconds <= 0) {
-      return 'Demasiados intentos. Prueba en un momento.';
-    }
-    final unit = seconds == 1 ? 'segundo' : 'segundos';
-    return 'Demasiados intentos. Prueba en $seconds $unit.';
   }
 }
 
