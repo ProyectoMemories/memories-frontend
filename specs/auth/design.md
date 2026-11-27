@@ -205,13 +205,20 @@ Registro:
   la decisión de despliegue, que sigue **[PENDIENTE]**.
 - **Enlaces del correo con sesión abierta** (decidido por el equipo el
   2026-11-27; falta registrarlo en el 01):
-  - `/verify-email` con sesión lleva a Inicio sin llamar a la API ni cerrar la
-    sesión: quien tiene sesión ya está verificado.
-    Caso aceptado: en un mismo navegador con la sesión de la cuenta A, el
-    enlace de la cuenta B se pierde. B lo abre desde otro navegador o pide
-    otro enlace con "Reenviar correo".
+  - `/verify-email` se abre con o sin sesión y verifica sin cerrar la sesión
+    abierta, aunque el enlace sea de otra cuenta (el token prueba que quien lo
+    abre recibió ese correo). Con sesión, el botón es "Ir a Inicio". Así el
+    enlace nunca se pierde: ni el de la misma cuenta ni el de otra cuenta en
+    el mismo navegador. Verificar dos veces no cambia nada en la API.
   - `/reset-password` con sesión se abre igual (F7): primero cierra la sesión
     actual y luego muestra el formulario, para que el enlace no se pierda.
+- **Fecha de nacimiento que no se cambia** (**[PROPUESTA]** de RN para el
+  05, la decide el equipo): después del registro la persona no puede cambiar
+  su fecha de nacimiento (una corrección por soporte queda fuera del MVP;
+  RN-02 no le da eso al superusuario). Si se pudiera cambiar,
+  bastaría con mentir para saltarse la edad mínima (RN-08). El registro ya lo
+  avisa bajo la fecha; quien lo hace cumplir es la API, cuando llegue el
+  módulo `users` (hoy no hay forma de cambiarla).
 - **Política de privacidad sin página:** la casilla del registro no enlaza a
   la política ni muestra su versión hasta que exista el texto.
   **[PENDIENTE]**.

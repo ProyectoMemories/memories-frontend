@@ -93,7 +93,11 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           value: _birthDate,
           firstDate: DateTime(today.year - 120),
           lastDate: DateTime(today.year, today.month, today.day),
-          helperText: 'Debes tener al menos 14 años para usar Memories.',
+          // La fecha no se cambia después (propuesta de RN, design §7): se
+          // avisa antes de crear la cuenta.
+          helperText:
+              'Debes tener al menos 14 años para usar Memories. Revísala '
+              'bien: después no podrás cambiarla.',
           errorText: errors[RegisterField.birthDate],
           onChanged: (date) => setState(() => _birthDate = date),
         ),

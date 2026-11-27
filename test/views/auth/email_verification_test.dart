@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
-import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
 
+import '../signed_in_app.dart';
 import '../signed_out_app.dart';
 
 void main() {
@@ -159,14 +159,23 @@ void main() {
     });
   });
 
-  test('con sesión, el enlace de verificación lleva a Inicio sin llamar a '
-      'la API (design §7)', () {
-    expect(
-      redirectFor(
-        SessionStatus.signedIn,
-        Uri.parse('${AppRoutes.verifyEmail}?token=abc'),
-      ),
-      AppRoutes.home,
-    );
+  testWidgets('con sesión abierta, verifica sin cerrarla y ofrece Ir a Inicio '
+      '(design §7)', (tester) async {
+    final app = await SignedInApp.pump(tester);
+    final tokens = <String>[];
+    app.repository.onVerifyEmail = (token) async => tokens.add(token);
+
+    app.container
+        .read(routerProvider)
+        .go('${AppRoutes.verifyEmail}?token=de-otra-cuenta');
+    await tester.pumpAndSettle();
+
+    expect(tokens, ['de-otra-cuenta']);
+    expect(find.text('Correo verificado'), findsOneWidget);
+    expect(app.logouts, 0);
+
+    await tester.tap(find.text('Ir a Inicio'));
+    await tester.pumpAndSettle();
+    expect(app.location, AppRoutes.home);
   });
 }

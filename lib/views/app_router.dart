@@ -29,8 +29,8 @@ abstract final class AppRoutes {
 }
 
 /// Rutas que se ven sin sesión. Incluye las que llegan en F7 para que la
-/// regla no cambie al agregarlas. Con sesión llevan a Inicio: `/verify-email`
-/// también, porque quien tiene sesión ya está verificado (design §7).
+/// regla no cambie al agregarlas. Con sesión llevan a Inicio, salvo las de
+/// [_linkPaths].
 const _authPaths = {
   AppRoutes.login,
   AppRoutes.register,
@@ -42,7 +42,14 @@ const _authPaths = {
   '/reset-password',
 };
 
+/// Las abre el enlace de un correo: se ven con o sin sesión, para que el
+/// enlace nunca se pierda (design §7). Verificar no toca la sesión abierta,
+/// aunque el enlace sea de otra cuenta.
+const _linkPaths = {AppRoutes.verifyEmail};
+
 bool _isAuthPath(String path) => _authPaths.contains(path);
+
+bool _isLinkPath(String path) => _linkPaths.contains(path);
 
 /// A dónde llevar a la persona según su sesión, o null para dejarla donde
 /// está. Sin sesión solo ve las rutas de auth; con sesión, esas llevan a
@@ -61,7 +68,9 @@ String? redirectFor(SessionStatus status, Uri location) {
   if (path == AppRoutes.splash) {
     final from = _sameSiteLocation(location.queryParameters['from']);
     return switch (status) {
-      SessionStatus.signedIn when from != null && !_isAuthPath(from.path) =>
+      SessionStatus.signedIn
+          when from != null &&
+              (!_isAuthPath(from.path) || _isLinkPath(from.path)) =>
         from.toString(),
       SessionStatus.signedOut when from != null && _isAuthPath(from.path) =>
         from.toString(),
@@ -71,7 +80,9 @@ String? redirectFor(SessionStatus status, Uri location) {
   }
 
   final isAuth = _isAuthPath(path);
-  if (status == SessionStatus.signedIn && isAuth) return AppRoutes.home;
+  if (status == SessionStatus.signedIn && isAuth && !_isLinkPath(path)) {
+    return AppRoutes.home;
+  }
   if (status == SessionStatus.signedOut && !isAuth) return AppRoutes.login;
   return null;
 }

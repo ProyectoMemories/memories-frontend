@@ -38,7 +38,8 @@ contraseña para ver mis álbumes.
 Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
 
 - **Paso 1:** nombre, apellido paterno, apellido materno (opcional) y fecha de
-  nacimiento. "Siguiente" siempre responde: si falta un obligatorio, lo marca
+  nacimiento. Bajo la fecha, la app avisa que después no se podrá cambiar
+  (**[PROPUESTA]** de RN, design §7). "Siguiente" siempre responde: si falta un obligatorio, lo marca
   debajo del campo (como "Entrar" desde F5).
 - **Dado** que lleno el paso 1 y pulso "Siguiente", **cuando** paso al paso 2,
   **entonces** la barra de progreso muestra "Paso 2 de 2".
@@ -72,10 +73,10 @@ Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
 - **Dado** que abro el enlace del correo en el navegador (`/verify-email?token=`,
   D65), **cuando** carga, **entonces** la app web verifica la cuenta y me ofrece
   iniciar sesión. Con el enlace vencido o usado, me ofrece pedir otro.
-- **Dado** que ya tengo la sesión abierta, **cuando** abro el enlace de
-  verificación, **entonces** voy a Inicio sin llamar a la API ni cerrar la
-  sesión: con sesión, la cuenta ya está verificada (no se puede entrar sin
-  verificar).
+- **Dado** que ya tengo la sesión abierta, **cuando** abro un enlace de
+  verificación (mío o de otra cuenta), **entonces** la app lo verifica sin
+  cerrar mi sesión y me ofrece "Ir a Inicio". El enlace nunca se pierde y
+  verificar dos veces no cambia nada.
 - **Dado** que llegué a "Revisa tu correo" desde el login con mi nombre de
   usuario (o recargué la página), **cuando** quiero reenviar el correo,
   **entonces** la pantalla me pide el correo, porque la app no lo conoce.
