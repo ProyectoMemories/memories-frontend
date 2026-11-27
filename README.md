@@ -50,6 +50,46 @@ flutter analyze                       # análisis estático
 flutter test                          # pruebas
 ```
 
+## Probar el inicio de sesión contra el backend local
+
+Necesitas el backend con Docker (`docker compose up -d` en `memories-backend`)
+y una cuenta verificada. Mientras no exista la pantalla de registro (F6), crea
+la cuenta de prueba con la API. El script te pide la contraseña sin mostrarla
+(de 8 a 64 caracteres) y verifica la cuenta con el correo que llega a Mailpit.
+El correo no sale a internet: el backend local lo entrega a Mailpit.
+Usa un dominio normal: el backend rechaza los reservados como `.test`.
+
+```powershell
+$clave = Read-Host "Contraseña para la cuenta de prueba" -AsSecureString
+$cuenta = @{
+  username = 'prueba.f5'; email = 'prueba.f5@ejemplo.pe'
+  password = [System.Net.NetworkCredential]::new('', $clave).Password
+  first_name = 'Prueba'; paternal_surname = 'Local'
+  birth_date = '2000-01-01'; accepts_privacy_policy = $true
+}
+Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/register `
+  -ContentType 'application/json' -Body ($cuenta | ConvertTo-Json)
+$cuenta = $null
+
+# El correo llega a Mailpit (http://localhost:8025); el token va en el enlace.
+Start-Sleep -Seconds 2
+$ultimo = (Invoke-RestMethod 'http://localhost:8025/api/v1/messages?limit=1').messages[0]
+$texto = (Invoke-RestMethod "http://localhost:8025/api/v1/message/$($ultimo.ID)").Text
+$token = [uri]::UnescapeDataString(([regex]::Match($texto, 'token=([^\s&]+)')).Groups[1].Value)
+Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/verify-email `
+  -ContentType 'application/json' -Body (@{ token = $token } | ConvertTo-Json)
+```
+
+Después entra con `prueba.f5` (o el correo) en Chrome y en el emulador:
+
+| Qué haces | Qué debe pasar |
+|---|---|
+| Entras con una contraseña incorrecta | "El usuario o la contraseña no son correctos." |
+| Entras con los datos correctos | Llegas a Inicio ("Tus álbumes") |
+| Recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña (HU-06) |
+| Perfil → Cerrar sesión | Vuelves a Iniciar sesión; al recargar o reabrir, sigues fuera |
+| Seis intentos fallidos en un minuto | "Demasiados intentos. Prueba en N segundos." |
+
 ## Cliente de la API
 
 El cliente vive en `packages/memories_api`. Se genera desde el OpenAPI del
