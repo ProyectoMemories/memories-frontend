@@ -39,9 +39,9 @@ decisiones de `design.md` §2.
 - [x] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
 - [x] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
 - [x] Inicio y Perfil provisionales; cerrar sesión · tests
-- [ ] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
+- [x] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
       emulador
-- [ ] Prueba manual en Chrome (puerto 3000) y en el emulador contra el Docker
+- [x] Prueba manual en Chrome (puerto 3000) y en el emulador contra el Docker
       del backend; README actualizado
 
 ## F6 · Registro y verificación (`feat/auth-register`)
@@ -50,6 +50,8 @@ decisiones de `design.md` §2.
       pantalla no existía) · widget test
 - [ ] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
       aviso de F5 · test del ViewModel
+- [ ] "Prueba en N segundos" descuenta en vivo y desaparece al llegar a
+      cero (pedido en la prueba manual de F5) · test del ViewModel
 - [ ] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
 - [ ] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
 - [ ] Revisa tu correo y reenviar · tests
