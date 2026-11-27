@@ -47,6 +47,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
       if (next.unverified && previous?.unverified != true) {
         context.go(AppRoutes.checkEmail, extra: next.unverifiedEmail);
       }
+      final hasFieldError =
+          next.identifierError != null || next.passwordError != null;
+      if (hasFieldError) announceFieldErrors(context);
     });
     final textTheme = Theme.of(context).textTheme;
 

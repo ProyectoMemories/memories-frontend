@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
@@ -218,5 +220,21 @@ void main() {
       expect(await submitStep2(), SubmitResult.failed);
       expect(registrations, isEmpty);
     });
+  });
+
+  test('un segundo toque mientras se envía no crea otra cuenta', () async {
+    fillStep1();
+    final answer = Completer<void>();
+    repository.onRegister = (registration) {
+      registrations.add(registration);
+      return answer.future;
+    };
+
+    final first = submitStep2();
+    expect(await submitStep2(), SubmitResult.failed);
+    answer.complete();
+
+    expect(await first, SubmitResult.registered);
+    expect(registrations, hasLength(1));
   });
 }

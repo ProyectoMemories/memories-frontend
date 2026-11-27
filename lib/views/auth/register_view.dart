@@ -8,6 +8,7 @@ import '../widgets/app_buttons.dart';
 import '../widgets/app_date_field.dart';
 import '../widgets/app_text_field.dart';
 import '../widgets/auth_layouts.dart';
+import '../widgets/form_error_text.dart';
 
 /// Crear cuenta, paso 1 (HU-02): pantalla "Registro 1: datos" del mockup.
 class RegisterView extends ConsumerStatefulWidget {
@@ -46,7 +47,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
       case NextStepResult.underage:
         context.go(AppRoutes.registerUnderage);
       case NextStepResult.incomplete:
-        break;
+        announceFieldErrors(context);
     }
   }
 
@@ -55,11 +56,11 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final errors = ref.watch(registerViewModelProvider).errors;
     final today = ref.watch(todayProvider)();
 
+    void goBack() => context.go(AppRoutes.login);
+
     return AuthFormScaffold(
-      topBar: AuthTopBar(
-        title: 'Crear cuenta',
-        onBack: () => context.go(AppRoutes.login),
-      ),
+      onBack: goBack,
+      topBar: AuthTopBar(title: 'Crear cuenta', onBack: goBack),
       progress: const StepProgress(current: 1, total: 2),
       title: 'Cuéntanos quién eres',
       footer: PrimaryButton(label: 'Siguiente', onPressed: _next),

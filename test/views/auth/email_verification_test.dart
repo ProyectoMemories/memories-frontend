@@ -22,6 +22,10 @@ void main() {
         findsOneWidget,
       );
       expect(textFieldLabeled('Correo'), findsNothing);
+      expect(
+        find.textContaining('vence en 24 horas', findRichText: true),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('Reenviar correo'));
       await tester.pump();
@@ -47,6 +51,17 @@ void main() {
       await tester.tap(find.text('Reenviar correo'));
       await tester.pump();
       expect(resent, ['ana@ejemplo.pe']);
+    });
+
+    testWidgets('el botón atrás de Android lleva al login', (tester) async {
+      final app = await SignedOutApp.pump(tester);
+      app.router.go(AppRoutes.checkEmail);
+      await tester.pumpAndSettle();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(app.location, AppRoutes.login);
     });
 
     testWidgets('Ya lo verifiqué lleva a Iniciar sesión', (tester) async {

@@ -46,6 +46,7 @@ class _CheckEmailViewState extends ConsumerState<CheckEmailView> {
     final email = widget.email;
 
     return AuthMessageScaffold(
+      onBack: () => context.go(AppRoutes.login),
       icon: Icons.mail_outline,
       title: 'Revisa tu correo',
       body: email == null

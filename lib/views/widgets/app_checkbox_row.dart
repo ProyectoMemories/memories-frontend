@@ -29,7 +29,9 @@ class AppCheckboxRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Semantics(
+          container: true,
           checked: value,
+          enabled: enabled,
           hint: errorText,
           child: InkWell(
             onTap: enabled ? () => onChanged(!value) : null,

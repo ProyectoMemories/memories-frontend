@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/api_error.dart';
 import '../../repositories/auth_repository.dart';
+import 'auth_messages.dart';
 
 enum VerifyEmailResult {
   verified,
@@ -34,6 +35,10 @@ class VerifyEmailViewModel extends AsyncNotifier<VerifyEmailResult> {
       rethrow;
     }
   }
+
+  /// Mensaje para el `AsyncError` del estado.
+  static String messageFor(Object error) =>
+      error is ApiError ? AuthMessages.general(error) : AuthMessages.unexpected;
 
   /// Vuelve a intentar después de un fallo de conexión. Verificar dos veces
   /// no cambia nada en la API.

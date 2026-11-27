@@ -112,9 +112,18 @@ Registro:
 - La fecha de nacimiento se elige con el calendario de Material en español:
   `flutter_localizations` (del SDK de Flutter, sin versión aparte) traduce los
   textos de Material de toda la app.
-- El correo llega a `/check-email` por `extra` de `go_router`, no en la URL
-  (no queda en el historial del navegador). Si no llega (login con nombre de
-  usuario o recarga), la pantalla pide el correo para reenviar.
+- El correo llega a `/check-email` por `extra` de `go_router`, no en la URL:
+  no va al servidor ni aparece en la barra de direcciones. En web, go_router
+  lo guarda en el historial de esa pestaña, así que sobrevive a una recarga.
+  Si no llega (login con nombre de usuario, o `/check-email` abierto
+  directamente), la pantalla pide el correo para reenviar.
+- La edad se calcula con la fecha del dispositivo; la API usa la suya. El día
+  que alguien cumple 14 puede haber unas horas de diferencia por la zona
+  horaria: la app puede hacer esperar hasta un día más que la API (aceptado).
+- Botón atrás de Android: las pantallas de auth se abren con `go`, así que
+  cada una hace lo mismo que su flecha (Registro → login, paso 2 → paso 1,
+  Revisa tu correo y `/verify-email` → login). Mientras se crea la cuenta, ni
+  la flecha ni el botón atrás responden: el resultado se perdería.
 
 ## 5. Datos y sesión
 
@@ -168,7 +177,7 @@ Registro:
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
 | `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |
-| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`). N baja cada segundo y el aviso desaparece en cero; el lector de pantalla lo anuncia una sola vez |
+| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`). En Iniciar sesión N baja cada segundo y el aviso desaparece en cero (el lector de pantalla lo anuncia una sola vez); en las demás pantallas el número queda fijo |
 | `username_taken` / `email_taken` | 409 | Registro 2 | En el campo: "Ese nombre de usuario ya existe." / "Ese correo ya tiene una cuenta." |
 | `password_length` / `password_too_common` | 422 | Registro 2, contraseñas | En el campo: "Usa de 8 a 64 caracteres." / "Es una contraseña muy común; elige otra." |
 | `underage` | 422 | Registro | Va a "Menor de 14" |
@@ -182,6 +191,9 @@ Registro:
 
 ## 7. Riesgos
 
+- **Errores de los campos y lector de pantalla:** al pulsar el botón con
+  campos mal, la app anuncia "Revisa los campos marcados."; cada campo lee su
+  error al recibir el foco.
 - **Campos de contraseña sin dibujar en el mockup** ("Registro 2" y "Nueva
   contraseña" muestran un bloque gris): se usan los mismos campos con botón de
   mostrar u ocultar (aprobado con la spec).
@@ -195,6 +207,9 @@ Registro:
   2026-11-27; falta registrarlo en el 01):
   - `/verify-email` con sesión lleva a Inicio sin llamar a la API ni cerrar la
     sesión: quien tiene sesión ya está verificado.
+    Caso aceptado: en un mismo navegador con la sesión de la cuenta A, el
+    enlace de la cuenta B se pierde. B lo abre desde otro navegador o pide
+    otro enlace con "Reenviar correo".
   - `/reset-password` con sesión se abre igual (F7): primero cierra la sesión
     actual y luego muestra el formulario, para que el enlace no se pierda.
 - **Política de privacidad sin página:** la casilla del registro no enlaza a

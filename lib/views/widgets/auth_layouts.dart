@@ -10,7 +10,9 @@ class AuthTopBar extends StatelessWidget {
   const AuthTopBar({super.key, required this.title, required this.onBack});
 
   final String title;
-  final VoidCallback onBack;
+
+  /// null mientras algo se envía: volver dejaría el envío sin respuesta.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +98,7 @@ class StepProgress extends StatelessWidget {
 class AuthFormScaffold extends StatelessWidget {
   const AuthFormScaffold({
     super.key,
+    required this.onBack,
     required this.topBar,
     this.progress,
     required this.title,
@@ -103,6 +106,8 @@ class AuthFormScaffold extends StatelessWidget {
     required this.footer,
   });
 
+  /// Lo que hace el botón atrás de Android (ver [_SystemBack]).
+  final VoidCallback? onBack;
   final Widget topBar;
   final Widget? progress;
   final String title;
@@ -111,44 +116,47 @@ class AuthFormScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _Centered(child: Column(children: [topBar, ?progress])),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                child: _Centered(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      ...children,
-                    ],
+    return _SystemBack(
+      onBack: onBack,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _Centered(child: Column(children: [topBar, ?progress])),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  child: _Centered(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        ...children,
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            DecoratedBox(
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(top: BorderSide(color: AppColors.divider)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
-                  child: _Centered(child: footer),
+              DecoratedBox(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  border: Border(top: BorderSide(color: AppColors.divider)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
+                    child: _Centered(child: footer),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -160,6 +168,7 @@ class AuthFormScaffold extends StatelessWidget {
 class AuthMessageScaffold extends StatelessWidget {
   const AuthMessageScaffold({
     super.key,
+    required this.onBack,
     this.topBar,
     required this.icon,
     required this.title,
@@ -168,6 +177,8 @@ class AuthMessageScaffold extends StatelessWidget {
     this.actions = const [],
   });
 
+  /// Lo que hace el botón atrás de Android (ver [_SystemBack]).
+  final VoidCallback? onBack;
   final Widget? topBar;
   final IconData icon;
   final String title;
@@ -183,62 +194,86 @@ class AuthMessageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     // Con barra superior el mockup deja menos espacio arriba.
     final top = topBar == null ? 64.0 : 40.0;
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            ?topBar,
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  // Llena la pantalla para dejar los botones al fondo, y hace
-                  // scroll si no entran.
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(24, top, 24, 28),
-                      child: _Centered(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Center(child: IconTile(icon: icon)),
-                            const SizedBox(height: 18),
-                            Semantics(
-                              header: true,
-                              child: Text(
-                                title,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall,
+    return _SystemBack(
+      onBack: onBack,
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              ?topBar,
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    // Llena la pantalla para dejar los botones al fondo, y hace
+                    // scroll si no entran.
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(24, top, 24, 28),
+                        child: _Centered(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Center(child: IconTile(icon: icon)),
+                              const SizedBox(height: 18),
+                              Semantics(
+                                header: true,
+                                child: Text(
+                                  title,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 18),
-                            DefaultTextStyle.merge(
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              child: body,
-                            ),
-                            if (extra case final extra?) ...[
                               const SizedBox(height: 18),
-                              extra,
+                              DefaultTextStyle.merge(
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                child: body,
+                              ),
+                              if (extra case final extra?) ...[
+                                const SizedBox(height: 18),
+                                extra,
+                              ],
+                              const Spacer(),
+                              for (final action in actions) ...[
+                                const SizedBox(height: 18),
+                                action,
+                              ],
                             ],
-                            const Spacer(),
-                            for (final action in actions) ...[
-                              const SizedBox(height: 18),
-                              action,
-                            ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Las pantallas de auth se abren con `go`, así que la pila tiene una sola
+/// página: sin esto, el botón atrás de Android cerraría la app. Hace lo mismo
+/// que la flecha de la pantalla; con [onBack] null (enviando) no hace nada.
+class _SystemBack extends StatelessWidget {
+  const _SystemBack({required this.onBack, required this.child});
+
+  final VoidCallback? onBack;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) onBack?.call();
+      },
+      child: child,
     );
   }
 }

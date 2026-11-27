@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
@@ -181,5 +183,85 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(app.location, AppRoutes.register);
+  });
+
+  group('botón atrás de Android', () {
+    testWidgets('en el paso 1 vuelve al login, no cierra la app', (
+      tester,
+    ) async {
+      await openRegister(tester);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(app.location, AppRoutes.login);
+    });
+
+    testWidgets('en el paso 2 vuelve al paso 1', (tester) async {
+      await openRegister(tester);
+      await fillStep1(tester);
+      await tapText(tester, 'Siguiente');
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(app.location, AppRoutes.register);
+      expect(find.text('Ana'), findsOneWidget);
+    });
+  });
+
+  testWidgets('mientras se crea la cuenta no se puede volver; al terminar va '
+      'a Revisa tu correo', (tester) async {
+    await openRegister(tester);
+    final answer = Completer<void>();
+    app.repository.onRegister = (_) => answer.future;
+    await fillStep1(tester);
+    await tapText(tester, 'Siguiente');
+    await fillStep2(tester);
+    await tapText(
+      tester,
+      'Acepto la política de privacidad y el tratamiento de mis datos '
+      'personales.',
+    );
+
+    await tester.tap(find.text('Crear cuenta').last);
+    await tester.pump();
+
+    final back = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.chevron_left),
+    );
+    expect(back.onPressed, isNull);
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(app.location, AppRoutes.registerAccess);
+
+    answer.complete();
+    await tester.pumpAndSettle();
+    expect(app.location, AppRoutes.checkEmail);
+  });
+
+  testWidgets('la casilla se lee como casilla, con su texto y su estado', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await openRegister(tester);
+    await fillStep1(tester);
+    await tapText(tester, 'Siguiente');
+
+    final checkbox = find.bySemanticsLabel(
+      RegExp('^Acepto la política de privacidad'),
+    );
+    expect(
+      tester.getSemantics(checkbox),
+      isSemantics(hasCheckedState: true, isChecked: false, isEnabled: true),
+    );
+
+    await tester.tap(checkbox);
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSemantics(checkbox),
+      isSemantics(hasCheckedState: true, isChecked: true, isEnabled: true),
+    );
+    handle.dispose();
   });
 }

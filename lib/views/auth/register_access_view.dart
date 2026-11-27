@@ -61,7 +61,9 @@ class _RegisterAccessViewState extends ConsumerState<RegisterAccessView> {
       case SubmitResult.underage:
         context.go(AppRoutes.registerUnderage);
       case SubmitResult.failed:
-        break;
+        if (ref.read(registerViewModelProvider).errors.isNotEmpty) {
+          announceFieldErrors(context);
+        }
     }
   }
 
@@ -71,11 +73,13 @@ class _RegisterAccessViewState extends ConsumerState<RegisterAccessView> {
     final errors = state.errors;
     final enabled = !state.isSubmitting;
 
+    // Mientras se crea la cuenta no se puede volver: el resultado se
+    // perdería y la cuenta quedaría creada sin que la persona lo sepa.
+    final goBack = enabled ? () => context.go(AppRoutes.register) : null;
+
     return AuthFormScaffold(
-      topBar: AuthTopBar(
-        title: 'Crear cuenta',
-        onBack: () => context.go(AppRoutes.register),
-      ),
+      onBack: goBack,
+      topBar: AuthTopBar(title: 'Crear cuenta', onBack: goBack),
       progress: const StepProgress(current: 2, total: 2),
       title: 'Tus datos de acceso',
       footer: PrimaryButton(

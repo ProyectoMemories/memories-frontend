@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../repositories/api_error.dart';
 import '../../view_models/auth/auth_messages.dart';
 import '../../view_models/auth/verify_email_view_model.dart';
 import '../app_router.dart';
@@ -19,20 +18,18 @@ class VerifyEmailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = verifyEmailViewModelProvider(token);
+    void goToLogin() => context.go(AppRoutes.login);
 
     return switch (ref.watch(provider)) {
       AsyncData(value: VerifyEmailResult.verified) => AuthMessageScaffold(
+        onBack: goToLogin,
         icon: Icons.mark_email_read_outlined,
         title: 'Correo verificado',
         body: const Text('Tu cuenta ya está activa. Ya puedes iniciar sesión.'),
-        actions: [
-          PrimaryButton(
-            label: 'Iniciar sesión',
-            onPressed: () => context.go(AppRoutes.login),
-          ),
-        ],
+        actions: [PrimaryButton(label: 'Iniciar sesión', onPressed: goToLogin)],
       ),
       AsyncData(value: VerifyEmailResult.linkInvalid) => AuthMessageScaffold(
+        onBack: goToLogin,
         icon: Icons.link_off,
         title: 'El enlace venció',
         body: const Text(AuthMessages.linkInvalid),
@@ -41,20 +38,14 @@ class VerifyEmailView extends ConsumerWidget {
             label: 'Pedir otro enlace',
             onPressed: () => context.go(AppRoutes.checkEmail),
           ),
-          SecondaryButton(
-            label: 'Iniciar sesión',
-            onPressed: () => context.go(AppRoutes.login),
-          ),
+          SecondaryButton(label: 'Iniciar sesión', onPressed: goToLogin),
         ],
       ),
       AsyncError(:final error) => AuthMessageScaffold(
-        icon: Icons.wifi_off,
+        onBack: goToLogin,
+        icon: Icons.error_outline,
         title: 'No pudimos verificar',
-        body: Text(
-          error is ApiError
-              ? AuthMessages.general(error)
-              : AuthMessages.unexpected,
-        ),
+        body: Text(VerifyEmailViewModel.messageFor(error)),
         actions: [
           PrimaryButton(
             label: 'Reintentar',
@@ -62,10 +53,16 @@ class VerifyEmailView extends ConsumerWidget {
           ),
         ],
       ),
-      _ => const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            semanticsLabel: 'Verificando tu correo',
+      _ => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) goToLogin();
+        },
+        child: const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(
+              semanticsLabel: 'Verificando tu correo',
+            ),
           ),
         ),
       ),

@@ -11,11 +11,11 @@ class UnderageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void goBack() => context.go(AppRoutes.register);
+
     return AuthMessageScaffold(
-      topBar: AuthTopBar(
-        title: 'Crear cuenta',
-        onBack: () => context.go(AppRoutes.register),
-      ),
+      onBack: goBack,
+      topBar: AuthTopBar(title: 'Crear cuenta', onBack: goBack),
       icon: Icons.lock_outline,
       title: 'Todavía no puedes crear una cuenta',
       body: const Text(
