@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
@@ -181,6 +182,20 @@ void main() {
     expect(state().identifierError, isNull);
     expect(state().passwordError, isNull);
     expect(logins, hasLength(1));
+  });
+
+  test('un fallo inesperado (Keystore) no deja el botón cargando', () async {
+    final reported = <FlutterErrorDetails>[];
+    final previousOnError = FlutterError.onError;
+    FlutterError.onError = reported.add;
+    addTearDown(() => FlutterError.onError = previousOnError);
+    repository.onLogin = () async => throw StateError('Keystore dañado');
+
+    await viewModel().submit(identifier: 'ana', password: 'clave-segura');
+
+    expect(state().isSubmitting, isFalse);
+    expect(state().errorMessage, 'Algo salió mal. Inténtalo de nuevo.');
+    expect(reported.single.exception, isA<StateError>());
   });
 
   test('al volver a intentar, el error anterior se borra', () async {

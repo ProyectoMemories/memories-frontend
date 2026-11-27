@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repositories/api_error.dart';
@@ -54,6 +55,22 @@ class LoginViewModel extends Notifier<LoginState> {
       if (ref.mounted) state = const LoginState();
     } on ApiError catch (error) {
       if (ref.mounted) state = LoginState(errorMessage: _messageFor(error));
+    } catch (error, stackTrace) {
+      // Por ejemplo, el Keystore al guardar los tokens: sin esto el botón se
+      // quedaría cargando para siempre.
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'memories',
+          context: ErrorDescription('al iniciar sesión'),
+        ),
+      );
+      if (ref.mounted) {
+        state = const LoginState(
+          errorMessage: 'Algo salió mal. Inténtalo de nuevo.',
+        );
+      }
     }
   }
 

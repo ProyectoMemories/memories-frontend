@@ -52,7 +52,7 @@ como `ThemeData` y constantes; ninguna pantalla escribe un color suelto.
 | `progressTrack` | `#E3D3BC` | Barra de progreso inactiva |
 | `toast` | `#2B211B` | Fondo de los avisos ("Correo reenviado") |
 | `toastIcon` | `#E2A93B` | Ícono de los avisos |
-| `danger` | `#A3261F` | Acciones que borran ("Eliminar cuenta") |
+| `danger` | `#A3261F` | Acciones que borran ("Eliminar cuenta") y mensajes de error |
 
 Medidas del mockup: campos de 52 px de alto con radio 14 y borde de 1,5 px;
 botones de 54 px con radio 16; etiquetas de 13 px en peso 800; texto de los
@@ -173,6 +173,12 @@ sesión, las de auth llevan a `/home`.
 - **Sin endpoint para leer el perfil:** la cabecera de Perfil y el nombre del
   saludo de Inicio esperan al módulo `users` (D78).
 - **Tipografía sin confirmar** (§3): si cambia, solo se toca el tema.
+- **Rutas web sin `#`:** al desplegar, el servidor tendrá que devolver
+  `index.html` en cualquier ruta (por ejemplo `/verify-email`). Se resuelve con
+  la decisión de despliegue, que sigue **[PENDIENTE]**.
+- **Enlaces del correo con sesión abierta:** con sesión, `/verify-email` y
+  `/reset-password` llevan a Inicio (§4) y el enlace se pierde.
+  **[PENDIENTE]** decidirlo antes de F6 y F7.
 - **Puerto 3000 en web:** con otro puerto, CORS bloquea y `/refresh` responde
   `origin_not_allowed`.
 - **Renovaciones simultáneas:** un error en el interceptor cierra la sesión del

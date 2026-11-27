@@ -123,8 +123,11 @@ lib/
 ├── main.dart                 arranque: valida la configuración y monta la app
 ├── app_config.dart           configuración por --dart-define
 ├── views/<feature>/          pantallas: solo muestran estado y envían acciones
+│   ├── theme/                tema y colores del mockup (design §3 de auth)
+│   └── widgets/              componentes compartidos entre pantallas
 ├── view_models/<feature>/    Notifiers de Riverpod: estado y lógica de cada pantalla
 └── repositories/             único punto de acceso a la API (usa el cliente generado)
+assets/fonts/                 Fraunces y Nunito Sans empaquetadas con su OFL (D79)
 packages/
 ├── generate_memories_api.ps1 regenera el cliente desde el OpenAPI
 └── memories_api/             cliente generado (D79): no se edita a mano

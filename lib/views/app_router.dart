@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../view_models/auth/session_notifier.dart';
 import 'auth/login_view.dart';
+import 'auth/profile_view.dart';
 import 'auth/splash_view.dart';
 import 'home_view.dart';
-import 'profile_view.dart';
+import 'not_found_view.dart';
 
 /// Rutas de la app (design.md §4). En inglés; las que abre el correo las fija
 /// el backend (D65, D73).
@@ -64,11 +65,13 @@ String? redirectFor(SessionStatus status, Uri location) {
   return null;
 }
 
-/// Solo rutas de esta app: un `from` con otro sitio no se sigue.
+/// Solo rutas de esta app: un `from` con otro sitio no se sigue, y uno que
+/// vuelve a la carga tampoco (encadenarlos agotaría las redirecciones).
 Uri? _sameSiteLocation(String? from) {
   final uri = from == null ? null : Uri.tryParse(from);
   if (uri == null || uri.hasScheme || uri.hasAuthority) return null;
-  return uri.path.startsWith('/') ? uri : null;
+  if (!uri.path.startsWith('/') || uri.path == AppRoutes.splash) return null;
+  return uri;
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -80,6 +83,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
     redirect: (context, state) => redirectFor(session.value, state.uri),
+    errorBuilder: (context, state) => const NotFoundView(),
     routes: [
       GoRoute(
         path: AppRoutes.splash,

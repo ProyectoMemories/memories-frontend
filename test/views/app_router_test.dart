@@ -49,6 +49,13 @@ void main() {
       expect(go(SessionStatus.signedOut, '/?from=%2Fprofile'), AppRoutes.login);
     });
 
+    test('un destino que apunta a la carga se ignora (sin bucles)', () {
+      expect(
+        go(SessionStatus.signedIn, '/?from=%2F%3Ffrom%3D%252Fprofile'),
+        AppRoutes.home,
+      );
+    });
+
     test('un destino recordado de otro sitio se ignora', () {
       expect(
         go(SessionStatus.signedIn, '/?from=https%3A%2F%2Fotro.sitio%2Fx'),
@@ -119,6 +126,18 @@ void main() {
       session.emit(SessionStatus.signedOut);
       await tester.pumpAndSettle();
       expect(location(container), AppRoutes.login);
+    });
+
+    testWidgets('una ruta que no existe muestra "no encontrado" en español', (
+      tester,
+    ) async {
+      final container = await pumpRouter(tester, SessionStatus.signedIn);
+
+      container.read(routerProvider).go('/no-existe');
+      await tester.pumpAndSettle();
+
+      expect(find.text('No encontramos esta página.'), findsOneWidget);
+      expect(find.text('Ir a Inicio'), findsOneWidget);
     });
 
     testWidgets('con sesión, ir a /login lleva a Inicio', (tester) async {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../view_models/auth/profile_view_model.dart';
-import 'home_view.dart';
-import 'theme/app_colors.dart';
-import 'widgets/app_bottom_bar.dart';
+import '../../view_models/auth/profile_view_model.dart';
+import '../home_view.dart';
+import '../theme/app_colors.dart';
+import '../widgets/app_bottom_bar.dart';
 
 /// Perfil provisional (HU-07). La cabecera con nombre, usuario y correo llega
 /// con el módulo `users`; "Cambiar contraseña", con su pantalla en F7.
