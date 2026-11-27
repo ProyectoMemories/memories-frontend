@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Solo en debug: la API local va por http://10.0.2.2:8001 (el emulador
+     llega a la PC por 10.0.2.2) y sin cifrar. release no tiene este archivo,
+     así que ahí Android bloquea todo tráfico sin cifrar (design §5). -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

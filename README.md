@@ -50,6 +50,49 @@ flutter analyze                       # análisis estático
 flutter test                          # pruebas
 ```
 
+## Probar el inicio de sesión contra el backend local
+
+**1. Levanta el backend** (`docker compose up -d` en `memories-backend`) y la
+app (ver "Cómo levantarla").
+
+**2. Entra con una cuenta verificada.** Si ya tienes una, usa esa y salta al
+paso 3. Si no, y mientras no exista la pantalla de registro (F6), créala con
+este script: te pide la contraseña sin mostrarla (de 8 a 64 caracteres), crea
+`prueba.f5` y la verifica con el correo que llega a Mailpit (no sale a
+internet).
+
+```powershell
+$clave = Read-Host "Contraseña para la cuenta de prueba" -AsSecureString
+$cuenta = @{
+  username = 'prueba.f5'; email = 'prueba.f5@ejemplo.pe'
+  password = [System.Net.NetworkCredential]::new('', $clave).Password
+  first_name = 'Prueba'; paternal_surname = 'Local'
+  birth_date = '2000-01-01'; accepts_privacy_policy = $true
+}
+Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/register `
+  -ContentType 'application/json' -Body ($cuenta | ConvertTo-Json)
+$cuenta = $null
+
+# El correo llega a Mailpit (http://localhost:8025); el token va en el enlace.
+Start-Sleep -Seconds 2
+$ultimo = (Invoke-RestMethod 'http://localhost:8025/api/v1/messages?limit=1').messages[0]
+$texto = (Invoke-RestMethod "http://localhost:8025/api/v1/message/$($ultimo.ID)").Text
+$token = [uri]::UnescapeDataString(([regex]::Match($texto, 'token=([^\s&]+)')).Groups[1].Value)
+Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/verify-email `
+  -ContentType 'application/json' -Body (@{ token = $token } | ConvertTo-Json)
+```
+
+**3. Revisa esto, en Chrome y en el emulador:**
+
+| Qué haces | Qué debe pasar |
+|---|---|
+| Entras con una contraseña incorrecta o un correo que no existe | "El usuario o la contraseña no son correctos." |
+| Entras con tus datos | Llegas a Inicio ("Tus álbumes") |
+| Ya en Inicio, recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña |
+| Perfil → Cerrar sesión | Vuelves a Iniciar sesión |
+| Después de salir, recargas o reabres | Sigues en Iniciar sesión |
+| Pones una contraseña incorrecta seis veces seguidas | "Demasiados intentos. Prueba en N segundos." |
+
 ## Cliente de la API
 
 El cliente vive en `packages/memories_api`. Se genera desde el OpenAPI del

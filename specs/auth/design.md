@@ -31,29 +31,42 @@ en la tarea que las agrega. openapi-generator con la imagen Docker
 
 ## 3. Tema del mockup ("Recuerdos 4.0 Movil")
 
-Colores medidos sobre el mockup (pueden diferir unos tonos por la compresión).
-Van en `lib/views/theme/` como `ThemeData` y constantes; ninguna pantalla
-escribe un color suelto.
+Colores tomados del **código** del mockup (las pantallas V4 del lienzo), no
+de una captura: son exactos. La primera versión de esta tabla se midió sobre
+una imagen y difería unos tonos; se corrigió en F5. Van en `lib/views/theme/`
+como `ThemeData` y constantes; ninguna pantalla escribe un color suelto.
 
 | Token | Color | Uso |
 |---|---|---|
 | `background` | `#F4ECDF` | Fondo de las pantallas |
-| `surface` | `#FFFAF4` | Campos, tarjetas, pie con el botón principal |
-| `primary` | `#7A2E29` | Botón principal, enlaces, barra de progreso activa, casilla marcada |
-| `onPrimary` | `#FFFFFF` | Texto del botón principal |
-| `textPrimary` | `#1F1712` | Títulos y texto de los campos |
-| `textSecondary` | `#6B6156` | Subtítulos, ayudas y placeholders |
-| `label` | `#3B2D2D` | Etiquetas de campo en mayúsculas |
-| `border` | `#E7DFD4` | Borde de los campos |
-| `iconTile` | `#EADDCA` | Cuadro del ícono (correo, candado) |
-| `progressTrack` | `#DED2BC` | Barra de progreso inactiva |
-| `toast` | `#2A211C` | Fondo de los avisos ("Correo reenviado") |
+| `surface` | `#FFFBF4` | Campos, tarjetas, barra inferior, pie con el botón principal |
+| `primary` | `#7A2E2A` | Botón principal, enlaces, barra de progreso activa, casilla marcada |
+| `primaryPressed` | `#5E2220` | Botón principal y enlaces al pasar el mouse o presionar |
+| `onPrimary` | `#FFFBF4` | Texto del botón principal |
+| `textPrimary` | `#2B211B` | Títulos y texto de los campos |
+| `textSecondary` | `#6B5B4E` | Subtítulos, ayudas, placeholders, ítems inactivos de la barra |
+| `label` | `#5A4A3E` | Etiquetas de campo en mayúsculas |
+| `border` | `#DCCDB8` | Borde de los campos |
+| `divider` | `#E7DAC6` | Líneas entre filas y borde de la barra inferior |
+| `iconTile` | `#EADDC9` | Cuadro del ícono (correo, candado), botón de buscar, selector de pestañas |
+| `progressTrack` | `#E3D3BC` | Barra de progreso inactiva |
+| `toast` | `#2B211B` | Fondo de los avisos ("Correo reenviado") |
+| `toastIcon` | `#E2A93B` | Ícono de los avisos |
+| `danger` | `#A3261F` | Acciones que borran ("Eliminar cuenta") y mensajes de error |
+
+Medidas del mockup: campos de 52 px de alto con radio 14 y borde de 1,5 px;
+botones de 54 px con radio 16; etiquetas de 13 px en peso 800; texto de los
+campos de 16 px en peso 600; títulos en Fraunces 700 (38 px en Iniciar sesión,
+30 px en Inicio y Perfil, 28 px en avisos de pantalla completa).
 
 Tipografía **[DECIDIDO]** (D79): **Fraunces** para títulos (serif cálida, con
 aire de libro, encaja con "guardar el significado") y **Nunito Sans** para el
 texto (sans de terminaciones suaves, legible en tamaños chicos). Las dos tienen
 licencia OFL y salen de `google/fonts`; se empaquetan en `assets/fonts/` junto a
-su `OFL.txt`.
+su `OFL.txt`. `google/fonts` solo las trae variables, y en Flutter el peso de
+una fuente variable no sigue a `fontWeight`; por eso se empaquetan versiones
+fijas de los pesos del mockup (Fraunces 500, 700 y 500 cursiva; Nunito Sans
+400, 600, 700 y 800). Cómo se generan: `assets/fonts/README.md`.
 
 Componentes compartidos (en `lib/views/widgets/`): campo con etiqueta en
 mayúsculas y texto de ayuda o error; campo de contraseña con botón para mostrar
@@ -67,10 +80,12 @@ auth se centran en una columna de unos 420 px.
 ## 4. Pantallas, rutas y ViewModels
 
 Rutas en inglés; las dos que abre el correo las fija el backend (D65, D73).
+En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
+`/verify-email?token=...`.
 
 | Ruta | Pantalla del mockup | ViewModel | Estados |
 |---|---|---|---|
-| `/login` | Iniciar sesión | `LoginViewModel` | inicial, enviando, error (mensaje), sin verificar → `/check-email` |
+| `/login` | Iniciar sesión | `LoginViewModel` | inicial, campo vacío (error en el campo), enviando, error (mensaje), sin verificar → `/check-email` |
 | `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | completo / incompleto, menor de 14 → `/register/underage` |
 | `/register/access` | Registro 2: acceso | `RegisterViewModel` | enviando, error por campo, listo → `/check-email` |
 | `/register/underage` | Menor de 14 | — | — |
@@ -134,8 +149,9 @@ sesión, las de auth llevan a `/home`.
 
 | `code` | HTTP | Dónde | Mensaje |
 |---|---|---|---|
+| (campo vacío, sin llamar a la API) | — | Login | En el campo: "Escribe tu correo o nombre de usuario." / "Escribe tu contraseña." |
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
-| `email_not_verified` | 403 | Login | Va a "Revisa tu correo" |
+| `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |
 | `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`) |
 | `username_taken` / `email_taken` | 409 | Registro 2 | En el campo: "Ese nombre de usuario ya existe." / "Ese correo ya tiene una cuenta." |
@@ -147,6 +163,7 @@ sesión, las de auth llevan a `/home`.
 | `invalid_refresh_token`, `not_authenticated` | 401 | Interceptor | Sin mensaje: vuelve a Iniciar sesión |
 | `origin_not_allowed` | 403 | Interceptor (web) | Error de configuración: la app web debe correr en el puerto 3000 |
 | Sin conexión o 5xx | — | Todas | "No pudimos conectar. Revisa tu conexión e inténtalo de nuevo." |
+| Otro `code` (no previsto) | — | Todas | "Algo salió mal. Inténtalo de nuevo." |
 
 ## 7. Riesgos
 
@@ -156,6 +173,12 @@ sesión, las de auth llevan a `/home`.
 - **Sin endpoint para leer el perfil:** la cabecera de Perfil y el nombre del
   saludo de Inicio esperan al módulo `users` (D78).
 - **Tipografía sin confirmar** (§3): si cambia, solo se toca el tema.
+- **Rutas web sin `#`:** al desplegar, el servidor tendrá que devolver
+  `index.html` en cualquier ruta (por ejemplo `/verify-email`). Se resuelve con
+  la decisión de despliegue, que sigue **[PENDIENTE]**.
+- **Enlaces del correo con sesión abierta:** con sesión, `/verify-email` y
+  `/reset-password` llevan a Inicio (§4) y el enlace se pierde.
+  **[PENDIENTE]** decidirlo antes de F6 y F7.
 - **Puerto 3000 en web:** con otro puerto, CORS bloquea y `/refresh` responde
   `origin_not_allowed`.
 - **Renovaciones simultáneas:** un error en el interceptor cierra la sesión del

@@ -32,20 +32,26 @@ decisiones de `design.md` §2.
 
 ## F5 · Iniciar sesión (`feat/auth-login`) · cierra P20
 
-- [ ] Tema (`lib/views/theme/`) con los tokens de design §3 y las fuentes
+- [x] Tema (`lib/views/theme/`) con los tokens de design §3 y las fuentes
       confirmadas · test: el `ThemeData` usa los tokens
-- [ ] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
+- [x] Componentes compartidos (campo, campo de contraseña, botones, aviso) ·
       widget tests
-- [ ] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
-- [ ] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
-- [ ] Inicio y Perfil provisionales; cerrar sesión · tests
-- [ ] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
+- [x] `go_router` con redirecciones según `SessionNotifier` · tests de rutas
+- [x] Pantalla y `LoginViewModel` · tests del ViewModel y widget test del flujo
+- [x] Inicio y Perfil provisionales; cerrar sesión · tests
+- [x] Android: tráfico sin cifrar solo en `debug` · se comprueba con el
       emulador
-- [ ] Prueba manual en Chrome (puerto 3000) y en el emulador contra el Docker
+- [x] Prueba manual en Chrome (puerto 3000) y en el emulador contra el Docker
       del backend; README actualizado
 
 ## F6 · Registro y verificación (`feat/auth-register`)
 
+- [ ] Botón "Crear cuenta" en Iniciar sesión (F5 no lo muestra porque la
+      pantalla no existía) · widget test
+- [ ] Login con `email_not_verified` lleva a "Revisa tu correo" en vez del
+      aviso de F5 · test del ViewModel
+- [ ] "Prueba en N segundos" descuenta en vivo y desaparece al llegar a
+      cero (pedido en la prueba manual de F5) · test del ViewModel
 - [ ] `RegisterViewModel` (dos pasos, edad, usuario D40) · tests
 - [ ] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
 - [ ] Revisa tu correo y reenviar · tests
@@ -54,8 +60,11 @@ decisiones de `design.md` §2.
 
 ## F7 · Contraseñas (`feat/auth-password`)
 
+- [ ] Enlace "¿Olvidaste tu contraseña?" en Iniciar sesión (F5 no lo
+      muestra porque la pantalla no existía) · widget test
 - [ ] Recuperar contraseña y aviso de enlace enviado · tests
 - [ ] `/reset-password?token=` (no coinciden, vencido, listo) · tests
-- [ ] Cambiar contraseña desde Perfil (actual incorrecta, listo) · tests
+- [ ] Fila "Cambiar contraseña" en Perfil (F5 no la muestra porque la
+      pantalla no existía) y la pantalla (actual incorrecta, listo) · tests
 - [ ] `integration_test` del recorrido completo contra el backend local
 - [ ] Prueba manual de todo auth en Chrome y en el emulador (D78)
