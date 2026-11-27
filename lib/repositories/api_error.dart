@@ -21,6 +21,9 @@ enum ApiErrorCode {
   accessTokenExpired('access_token_expired'),
   originNotAllowed('origin_not_allowed'),
 
+  /// 422 de formato: la API dice qué campos estaban mal en [ApiError.fields].
+  validationError('validation_error'),
+
   /// Sin conexión, tiempo agotado o error 5xx: el mismo mensaje para todos.
   network(null),
 
@@ -39,7 +42,7 @@ enum ApiErrorCode {
 }
 
 class ApiError implements Exception {
-  const ApiError(this.code, {this.retryAfter});
+  const ApiError(this.code, {this.retryAfter, this.fields = const {}});
 
   /// Traduce el error de dio al de la app.
   factory ApiError.fromDio(DioException error) {
@@ -56,6 +59,7 @@ class ApiError implements Exception {
     return ApiError(
       ApiErrorCode.fromWire(code),
       retryAfter: _parseRetryAfter(response.headers.value('retry-after')),
+      fields: _parseFields(body),
     );
   }
 
@@ -63,6 +67,19 @@ class ApiError implements Exception {
 
   /// Cuánto esperar antes de reintentar (`Retry-After`, D70, D77).
   final Duration? retryAfter;
+
+  /// Campos que la API rechazó por formato (`validation_error`), con el
+  /// nombre del JSON (`email`, `username`…). El mensaje lo pone la app.
+  final Set<String> fields;
+
+  static Set<String> _parseFields(Object? body) {
+    final errors = body is Map ? body['errors'] : null;
+    if (errors is! List) return const {};
+    return {
+      for (final error in errors)
+        if (error is Map && error['field'] is String) error['field'] as String,
+    };
+  }
 
   static Duration? _parseRetryAfter(String? header) {
     final seconds = header == null ? null : int.tryParse(header);

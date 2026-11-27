@@ -14,6 +14,9 @@ class FakeAuthRepository implements AuthRepository {
   Future<SessionTokens> Function() onRefresh = () async =>
       throw const ApiError(ApiErrorCode.invalidRefreshToken);
   Future<void> Function() onLogout = () async {};
+  Future<void> Function(Registration) onRegister = (_) async {};
+  Future<void> Function(String) onVerifyEmail = (_) async {};
+  Future<void> Function(String) onResendVerification = (_) async {};
   int refreshCalls = 0;
 
   @override
@@ -28,6 +31,15 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() => onLogout();
+
+  @override
+  Future<void> register(Registration registration) => onRegister(registration);
+
+  @override
+  Future<void> verifyEmail(String token) => onVerifyEmail(token);
+
+  @override
+  Future<void> resendVerification(String email) => onResendVerification(email);
 }
 
 /// TokenStore cuyo `read` falla, como un Keystore dañado.
