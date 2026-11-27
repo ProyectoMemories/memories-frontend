@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,12 +89,28 @@ void main() {
     expect(container.read(sessionProvider), SessionStatus.signedOut);
   });
 
-  test('cuenta sin verificar: avisa que revise su correo', () async {
-    expect(
-      await errorFor(const ApiError(ApiErrorCode.emailNotVerified)),
-      'Tu cuenta todavía no está verificada. Revisa tu correo para '
-      'activarla.',
-    );
+  group('cuenta sin verificar (HU-01)', () {
+    test('entró con correo: va a Revisa tu correo con ese correo', () async {
+      repository.onLogin = () async =>
+          throw const ApiError(ApiErrorCode.emailNotVerified);
+      await viewModel().submit(
+        identifier: ' ana@ejemplo.pe ',
+        password: 'clave-segura',
+      );
+
+      expect(state().unverified, isTrue);
+      expect(state().unverifiedEmail, 'ana@ejemplo.pe');
+      expect(state().errorMessage, isNull);
+    });
+
+    test('entró con nombre de usuario: va sin correo', () async {
+      repository.onLogin = () async =>
+          throw const ApiError(ApiErrorCode.emailNotVerified);
+      await viewModel().submit(identifier: 'ana', password: 'clave-segura');
+
+      expect(state().unverified, isTrue);
+      expect(state().unverifiedEmail, isNull);
+    });
   });
 
   test('cuenta suspendida: lo dice sin más detalle', () async {
@@ -125,6 +142,84 @@ void main() {
       ),
       'Demasiados intentos. Prueba en 1 segundo.',
     );
+  });
+
+  group('cuenta regresiva de demasiados intentos', () {
+    void tooManyRequests(FakeAsync async, int seconds) {
+      repository.onLogin = () async => throw ApiError(
+        ApiErrorCode.tooManyRequests,
+        retryAfter: Duration(seconds: seconds),
+      );
+      viewModel().submit(identifier: 'ana', password: 'clave-segura');
+      async.flushMicrotasks();
+    }
+
+    test('baja de uno en uno y desaparece en cero', () {
+      fakeAsync((async) {
+        tooManyRequests(async, 3);
+        expect(
+          state().errorMessage,
+          'Demasiados intentos. Prueba en 3 segundos.',
+        );
+
+        async.elapse(const Duration(seconds: 1));
+        expect(
+          state().errorMessage,
+          'Demasiados intentos. Prueba en 2 segundos.',
+        );
+
+        async.elapse(const Duration(seconds: 1));
+        expect(
+          state().errorMessage,
+          'Demasiados intentos. Prueba en 1 segundo.',
+        );
+
+        async.elapse(const Duration(seconds: 1));
+        expect(state().errorMessage, isNull);
+        expect(async.periodicTimerCount, 0);
+      });
+    });
+
+    test('el lector de pantalla no lo anuncia cada segundo', () {
+      fakeAsync((async) {
+        tooManyRequests(async, 5);
+        async.elapse(const Duration(seconds: 2));
+
+        expect(
+          state().errorMessage,
+          'Demasiados intentos. Prueba en 3 segundos.',
+        );
+        expect(
+          state().errorAnnouncement,
+          'Demasiados intentos. Prueba en 5 segundos.',
+        );
+      });
+    });
+
+    test('un nuevo intento detiene la cuenta anterior', () {
+      fakeAsync((async) {
+        tooManyRequests(async, 30);
+        repository.onLogin = () async =>
+            throw const ApiError(ApiErrorCode.invalidCredentials);
+        viewModel().submit(identifier: 'ana', password: 'otra-clave');
+        async.flushMicrotasks();
+
+        async.elapse(const Duration(seconds: 5));
+        expect(
+          state().errorMessage,
+          'El usuario o la contraseña no son correctos.',
+        );
+        expect(async.periodicTimerCount, 0);
+      });
+    });
+
+    test('salir de la pantalla detiene la cuenta', () {
+      fakeAsync((async) {
+        tooManyRequests(async, 30);
+        container.dispose();
+        expect(async.periodicTimerCount, 0);
+      });
+    });
   });
 
   test('demasiados intentos sin Retry-After: sin número', () async {

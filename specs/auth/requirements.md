@@ -38,13 +38,19 @@ contraseña para ver mis álbumes.
 Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
 
 - **Paso 1:** nombre, apellido paterno, apellido materno (opcional) y fecha de
-  nacimiento. "Siguiente" se activa con los obligatorios llenos.
+  nacimiento. Bajo la fecha, la app avisa que después no se podrá cambiar
+  (**[PROPUESTA]** de RN, design §7). "Siguiente" siempre responde: si falta un obligatorio, lo marca
+  debajo del campo (como "Entrar" desde F5).
+- **Dado** que lleno el paso 1 y pulso "Siguiente", **cuando** paso al paso 2,
+  **entonces** la barra de progreso muestra "Paso 2 de 2".
 - **Dado** una fecha de nacimiento de alguien menor de 14 años, **cuando**
   pulso "Siguiente", **entonces** voy a "Todavía no puedes crear una cuenta"
   y no se envía nada a la API (RN-08). La API igual rechaza con `underage`.
 - **Paso 2:** nombre de usuario (regla de RN-10, D40, revisada antes de enviar),
   correo, contraseña de 8 a 64 caracteres (D62-B) y la casilla de la política de
-  privacidad (RN-50, D65). "Crear cuenta" se activa solo con la casilla marcada.
+  privacidad (RN-50, D65). "Crear cuenta" siempre responde: sin la casilla
+  marcada, pide marcarla y no envía nada. El texto de la casilla todavía no
+  enlaza a la política porque no existe su página: **[PENDIENTE]**.
 - **Dado** datos válidos, **cuando** pulso "Crear cuenta", **entonces** voy a
   "Revisa tu correo" con mi correo escrito.
 - **Dado** un usuario o correo ya usados, **cuando** pulso "Crear cuenta",
@@ -67,6 +73,13 @@ Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
 - **Dado** que abro el enlace del correo en el navegador (`/verify-email?token=`,
   D65), **cuando** carga, **entonces** la app web verifica la cuenta y me ofrece
   iniciar sesión. Con el enlace vencido o usado, me ofrece pedir otro.
+- **Dado** que ya tengo la sesión abierta, **cuando** abro un enlace de
+  verificación (mío o de otra cuenta), **entonces** la app lo verifica sin
+  cerrar mi sesión y me ofrece "Ir a Inicio". El enlace nunca se pierde y
+  verificar dos veces no cambia nada.
+- **Dado** que llegué a "Revisa tu correo" desde el login con mi nombre de
+  usuario (o recargué la página), **cuando** quiero reenviar el correo,
+  **entonces** la pantalla me pide el correo, porque la app no lo conoce.
 - En Android, el enlace se abre en el navegador (app web). Abrir la app
   directo desde el correo queda **[PENDIENTE]** (D65).
 

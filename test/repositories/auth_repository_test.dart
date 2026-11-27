@@ -201,6 +201,100 @@ void main() {
     });
   });
 
+  group('registro y verificación', () {
+    final registration = Registration(
+      username: 'ana.lopez',
+      email: 'ana@ejemplo.pe',
+      password: 'clave-segura',
+      firstName: 'Ana',
+      paternalSurname: 'López',
+      maternalSurname: null,
+      birthDate: DateTime(2001, 3, 9, 23, 59),
+      acceptsPrivacyPolicy: true,
+    );
+
+    test('register envía los datos con la fecha sin hora', () async {
+      adapter.handler = (_) async => jsonReply(201, {
+        'id': '7a1c3f1e-0000-4000-8000-000000000000',
+        'username': 'ana.lopez',
+        'email': 'ana@ejemplo.pe',
+        'status': 'unverified',
+      });
+
+      await buildRepository(ClientPlatform.web).register(registration);
+
+      final request = adapter.requests.single;
+      expect(request.path, '/api/v1/auth/register');
+      expect(request.data, {
+        'username': 'ana.lopez',
+        'email': 'ana@ejemplo.pe',
+        'password': 'clave-segura',
+        'first_name': 'Ana',
+        'paternal_surname': 'López',
+        'birth_date': '2001-03-09',
+        'accepts_privacy_policy': true,
+      });
+      expect(store.tokens, isNull);
+    });
+
+    test('usuario o correo en uso: su propio código', () async {
+      adapter.handler = (_) async => apiError(409, 'email_taken');
+      await expectLater(
+        buildRepository(ClientPlatform.web).register(registration),
+        throwsApiError(ApiErrorCode.emailTaken),
+      );
+    });
+
+    test('validation_error: dice qué campos rechazó la API', () async {
+      adapter.handler = (_) async => jsonReply(422, {
+        'code': 'validation_error',
+        'message': 'Hay datos inválidos.',
+        'errors': [
+          {'field': 'email', 'message': 'value is not a valid email'},
+          {'field': 'username', 'message': 'No puede tener dos puntos.'},
+        ],
+      });
+      await expectLater(
+        buildRepository(ClientPlatform.web).register(registration),
+        throwsA(
+          isA<ApiError>()
+              .having((e) => e.code, 'code', ApiErrorCode.validationError)
+              .having((e) => e.fields, 'fields', {'email', 'username'}),
+        ),
+      );
+    });
+
+    test('verifyEmail manda el token del enlace', () async {
+      adapter.handler = (_) async => jsonReply(204);
+
+      await buildRepository(ClientPlatform.web).verifyEmail('token-1');
+
+      final request = adapter.requests.single;
+      expect(request.path, '/api/v1/auth/verify-email');
+      expect(request.data, {'token': 'token-1'});
+    });
+
+    test('verifyEmail con el enlace vencido: expiredToken', () async {
+      adapter.handler = (_) async => apiError(400, 'expired_token');
+      await expectLater(
+        buildRepository(ClientPlatform.web).verifyEmail('token-1'),
+        throwsApiError(ApiErrorCode.expiredToken),
+      );
+    });
+
+    test('resendVerification acepta el 202 sin cuerpo de la API', () async {
+      adapter.handler = (_) async =>
+          ResponseBody.fromString('', 202, headers: {});
+
+      await buildRepository(ClientPlatform.web)
+          .resendVerification('ana@ejemplo.pe');
+
+      final request = adapter.requests.single;
+      expect(request.path, '/api/v1/auth/verify-email/resend');
+      expect(request.data, {'email': 'ana@ejemplo.pe'});
+    });
+  });
+
   group('logout', () {
     test(
       'en Android revoca con el token guardado y borra los locales',

@@ -37,6 +37,8 @@ void main() {
 
     test('con sesión: las rutas de auth llevan a /home', () {
       expect(go(SessionStatus.signedIn, '/login'), AppRoutes.home);
+      expect(go(SessionStatus.signedIn, '/register'), AppRoutes.home);
+      expect(go(SessionStatus.signedIn, '/check-email'), AppRoutes.home);
       expect(go(SessionStatus.signedIn, '/home'), isNull);
       expect(go(SessionStatus.signedIn, '/profile'), isNull);
     });
@@ -47,6 +49,16 @@ void main() {
       expect(go(SessionStatus.signedOut, '/'), AppRoutes.login);
       // Sin sesión, un destino privado no sirve: va a iniciar sesión.
       expect(go(SessionStatus.signedOut, '/?from=%2Fprofile'), AppRoutes.login);
+    });
+
+    test('el enlace de verificación se abre con o sin sesión (design §7)', () {
+      expect(go(SessionStatus.signedIn, '/verify-email?token=abc'), isNull);
+      expect(go(SessionStatus.signedOut, '/verify-email?token=abc'), isNull);
+      // Al abrir la app desde el enlace, sigue al enlace al terminar de
+      // comprobar la sesión, con o sin sesión.
+      const fromLink = '/?from=%2Fverify-email%3Ftoken%3Dabc';
+      expect(go(SessionStatus.signedIn, fromLink), '/verify-email?token=abc');
+      expect(go(SessionStatus.signedOut, fromLink), '/verify-email?token=abc');
     });
 
     test('un destino que apunta a la carga se ignora (sin bucles)', () {

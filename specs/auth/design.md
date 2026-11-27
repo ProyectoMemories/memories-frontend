@@ -86,10 +86,10 @@ En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
 | Ruta | Pantalla del mockup | ViewModel | Estados |
 |---|---|---|---|
 | `/login` | Iniciar sesión | `LoginViewModel` | inicial, campo vacío (error en el campo), enviando, error (mensaje), sin verificar → `/check-email` |
-| `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | completo / incompleto, menor de 14 → `/register/underage` |
-| `/register/access` | Registro 2: acceso | `RegisterViewModel` | enviando, error por campo, listo → `/check-email` |
-| `/register/underage` | Menor de 14 | — | — |
-| `/check-email` | Verifica tu correo | `CheckEmailViewModel` | reenviando, reenviado (aviso) |
+| `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | campo vacío (error en el campo), menor de 14 → `/register/underage` |
+| `/register/access` | Registro 2: acceso | `RegisterViewModel` | error por campo antes de enviar, casilla sin marcar, enviando, error de la API por campo, listo → `/check-email` |
+| `/register/underage` | Menor de 14 | — (borra lo escrito: "No guardamos los datos") | — |
+| `/check-email` | Verifica tu correo | `CheckEmailViewModel` | reenviando, reenviado (aviso), sin correo conocido (pide el correo para reenviar) |
 | `/verify-email?token=` | Aprobada con la spec: estilo de "Verifica tu correo": "Correo verificado" o "El enlace venció" | `VerifyEmailViewModel` | verificando, verificado, vencido o usado |
 | `/forgot-password` | Recuperar contraseña | `ForgotPasswordViewModel` | enviando, enviado (aviso) |
 | `/reset-password?token=` | Nueva contraseña | `ResetPasswordViewModel` | enviando, no coinciden, enlace vencido, listo → `/login` con aviso |
@@ -99,7 +99,31 @@ En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
 
 `SessionNotifier` (estado de la app: comprobando, con sesión, sin sesión) decide
 las redirecciones de `go_router`: sin sesión solo se ven las rutas de auth; con
-sesión, las de auth llevan a `/home`.
+sesión, las de auth llevan a `/home`, salvo `/reset-password` (§7, F7).
+
+Registro:
+
+- `/register/access` y `/register/underage` son subrutas de `/register`: así
+  la flecha atrás del paso 2 vuelve al paso 1 con lo escrito (HU-02) y los dos
+  pasos comparten el mismo `RegisterViewModel`. Si se abre `/register/access`
+  sin el paso 1 (recarga en web), vuelve a `/register`.
+- La app revisa antes de enviar lo mismo que la API (RN-08, RN-10, D40,
+  D62-B), para marcar el campo sin esperar. La API igual lo vuelve a revisar.
+- La fecha de nacimiento se elige con el calendario de Material en español:
+  `flutter_localizations` (del SDK de Flutter, sin versión aparte) traduce los
+  textos de Material de toda la app.
+- El correo llega a `/check-email` por `extra` de `go_router`, no en la URL:
+  no va al servidor ni aparece en la barra de direcciones. En web, go_router
+  lo guarda en el historial de esa pestaña, así que sobrevive a una recarga.
+  Si no llega (login con nombre de usuario, o `/check-email` abierto
+  directamente), la pantalla pide el correo para reenviar.
+- La edad se calcula con la fecha del dispositivo; la API usa la suya. El día
+  que alguien cumple 14 puede haber unas horas de diferencia por la zona
+  horaria: la app puede hacer esperar hasta un día más que la API (aceptado).
+- Botón atrás de Android: las pantallas de auth se abren con `go`, así que
+  cada una hace lo mismo que su flecha (Registro → login, paso 2 → paso 1,
+  Revisa tu correo y `/verify-email` → login). Mientras se crea la cuenta, ni
+  la flecha ni el botón atrás responden: el resultado se perdería.
 
 ## 5. Datos y sesión
 
@@ -153,7 +177,7 @@ sesión, las de auth llevan a `/home`.
 | `invalid_credentials` | 401 | Login | "El usuario o la contraseña no son correctos." |
 | `email_not_verified` | 403 | Login | Va a "Revisa tu correo" (F6). En F5, que todavía no tiene esa pantalla: "Tu cuenta todavía no está verificada. Revisa tu correo para activarla." |
 | `account_suspended` | 403 | Login | "Esta cuenta está suspendida." |
-| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`) |
+| `too_many_requests` | 429 | Todas | "Demasiados intentos. Prueba en N segundos." (`Retry-After`). En Iniciar sesión N baja cada segundo y el aviso desaparece en cero (el lector de pantalla lo anuncia una sola vez); en las demás pantallas el número queda fijo |
 | `username_taken` / `email_taken` | 409 | Registro 2 | En el campo: "Ese nombre de usuario ya existe." / "Ese correo ya tiene una cuenta." |
 | `password_length` / `password_too_common` | 422 | Registro 2, contraseñas | En el campo: "Usa de 8 a 64 caracteres." / "Es una contraseña muy común; elige otra." |
 | `underage` | 422 | Registro | Va a "Menor de 14" |
@@ -167,6 +191,9 @@ sesión, las de auth llevan a `/home`.
 
 ## 7. Riesgos
 
+- **Errores de los campos y lector de pantalla:** al pulsar el botón con
+  campos mal, la app anuncia "Revisa los campos marcados."; cada campo lee su
+  error al recibir el foco.
 - **Campos de contraseña sin dibujar en el mockup** ("Registro 2" y "Nueva
   contraseña" muestran un bloque gris): se usan los mismos campos con botón de
   mostrar u ocultar (aprobado con la spec).
@@ -176,9 +203,25 @@ sesión, las de auth llevan a `/home`.
 - **Rutas web sin `#`:** al desplegar, el servidor tendrá que devolver
   `index.html` en cualquier ruta (por ejemplo `/verify-email`). Se resuelve con
   la decisión de despliegue, que sigue **[PENDIENTE]**.
-- **Enlaces del correo con sesión abierta:** con sesión, `/verify-email` y
-  `/reset-password` llevan a Inicio (§4) y el enlace se pierde.
-  **[PENDIENTE]** decidirlo antes de F6 y F7.
+- **Enlaces del correo con sesión abierta** (decidido por el equipo el
+  2026-11-27; falta registrarlo en el 01):
+  - `/verify-email` se abre con o sin sesión y verifica sin cerrar la sesión
+    abierta, aunque el enlace sea de otra cuenta (el token prueba que quien lo
+    abre recibió ese correo). Con sesión, el botón es "Ir a Inicio". Así el
+    enlace nunca se pierde: ni el de la misma cuenta ni el de otra cuenta en
+    el mismo navegador. Verificar dos veces no cambia nada en la API.
+  - `/reset-password` con sesión se abre igual (F7): primero cierra la sesión
+    actual y luego muestra el formulario, para que el enlace no se pierda.
+- **Fecha de nacimiento que no se cambia** (**[PROPUESTA]** de RN para el
+  05, la decide el equipo): después del registro la persona no puede cambiar
+  su fecha de nacimiento (una corrección por soporte queda fuera del MVP;
+  RN-02 no le da eso al superusuario). Si se pudiera cambiar,
+  bastaría con mentir para saltarse la edad mínima (RN-08). El registro ya lo
+  avisa bajo la fecha; quien lo hace cumplir es la API, cuando llegue el
+  módulo `users` (hoy no hay forma de cambiarla).
+- **Política de privacidad sin página:** la casilla del registro no enlaza a
+  la política ni muestra su versión hasta que exista el texto.
+  **[PENDIENTE]**.
 - **Puerto 3000 en web:** con otro puerto, CORS bloquea y `/refresh` responde
   `origin_not_allowed`.
 - **Renovaciones simultáneas:** un error en el interceptor cierra la sesión del

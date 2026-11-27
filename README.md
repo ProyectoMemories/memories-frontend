@@ -50,39 +50,30 @@ flutter analyze                       # análisis estático
 flutter test                          # pruebas
 ```
 
-## Probar el inicio de sesión contra el backend local
+## Probar auth contra el backend local
 
 **1. Levanta el backend** (`docker compose up -d` en `memories-backend`) y la
 app (ver "Cómo levantarla").
 
-**2. Entra con una cuenta verificada.** Si ya tienes una, usa esa y salta al
-paso 3. Si no, y mientras no exista la pantalla de registro (F6), créala con
-este script: te pide la contraseña sin mostrarla (de 8 a 64 caracteres), crea
-`prueba.f5` y la verifica con el correo que llega a Mailpit (no sale a
-internet).
+**2. Crea una cuenta desde la app** con un correo inventado (por ejemplo
+`prueba@ejemplo.pe`): en local los correos no salen a internet, los atrapa
+Mailpit en http://localhost:8025.
 
-```powershell
-$clave = Read-Host "Contraseña para la cuenta de prueba" -AsSecureString
-$cuenta = @{
-  username = 'prueba.f5'; email = 'prueba.f5@ejemplo.pe'
-  password = [System.Net.NetworkCredential]::new('', $clave).Password
-  first_name = 'Prueba'; paternal_surname = 'Local'
-  birth_date = '2000-01-01'; accepts_privacy_policy = $true
-}
-Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/register `
-  -ContentType 'application/json' -Body ($cuenta | ConvertTo-Json)
-$cuenta = $null
+| Qué haces | Qué debe pasar |
+|---|---|
+| Iniciar sesión → Crear cuenta → Siguiente, sin llenar nada | Cada campo obligatorio dice qué falta |
+| Llenas el paso 1, pasas al paso 2 y vuelves atrás | Lo escrito en el paso 1 sigue ahí |
+| Pones una fecha de alguien menor de 14 | "Todavía no puedes crear una cuenta" |
+| Terminas el registro | "Revisa tu correo" con tu correo; "Reenviar correo" muestra "Correo reenviado" |
+| Abres el correo en Mailpit y tocas el enlace (en Chrome de la PC) | "Correo verificado" |
+| Abres un enlace de verificación con la sesión iniciada | "Correo verificado" y sigues dentro ("Ir a Inicio") |
+| Entras con una cuenta sin verificar usando su nombre de usuario | "Revisa tu correo", que te pide el correo para reenviar |
+| En Android, botón atrás del sistema en Registro o Revisa tu correo | Vuelve de pantalla, no cierra la app |
 
-# El correo llega a Mailpit (http://localhost:8025); el token va en el enlace.
-Start-Sleep -Seconds 2
-$ultimo = (Invoke-RestMethod 'http://localhost:8025/api/v1/messages?limit=1').messages[0]
-$texto = (Invoke-RestMethod "http://localhost:8025/api/v1/message/$($ultimo.ID)").Text
-$token = [uri]::UnescapeDataString(([regex]::Match($texto, 'token=([^\s&]+)')).Groups[1].Value)
-Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/verify-email `
-  -ContentType 'application/json' -Body (@{ token = $token } | ConvertTo-Json)
-```
+En el emulador el enlace del correo se abre en Chrome de la PC: abrir la app
+de Android desde el correo sigue pendiente (D65).
 
-**3. Revisa esto, en Chrome y en el emulador:**
+**3. Revisa la sesión, en Chrome y en el emulador:**
 
 | Qué haces | Qué debe pasar |
 |---|---|
@@ -91,7 +82,7 @@ Invoke-RestMethod -Method Post http://localhost:8001/api/v1/auth/verify-email `
 | Ya en Inicio, recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña |
 | Perfil → Cerrar sesión | Vuelves a Iniciar sesión |
 | Después de salir, recargas o reabres | Sigues en Iniciar sesión |
-| Pones una contraseña incorrecta seis veces seguidas | "Demasiados intentos. Prueba en N segundos." |
+| Pones una contraseña incorrecta seis veces seguidas | "Demasiados intentos. Prueba en N segundos.", y N baja cada segundo |
 
 ## Cliente de la API
 
