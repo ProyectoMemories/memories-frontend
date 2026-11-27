@@ -56,7 +56,7 @@ decisiones de `design.md` §2.
 - [x] Pantallas Registro 1, Registro 2 y Menor de 14 · widget tests
 - [x] Revisa tu correo y reenviar · tests
 - [x] `/verify-email?token=` · tests de verificado y vencido
-- [ ] Prueba manual: registro real y enlace desde Mailpit
+- [x] Prueba manual: registro real y enlace desde Mailpit
 
 ## F7 · Contraseñas (`feat/auth-password`)
 
