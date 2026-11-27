@@ -86,10 +86,10 @@ En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
 | Ruta | Pantalla del mockup | ViewModel | Estados |
 |---|---|---|---|
 | `/login` | Iniciar sesión | `LoginViewModel` | inicial, campo vacío (error en el campo), enviando, error (mensaje), sin verificar → `/check-email` |
-| `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | completo / incompleto, menor de 14 → `/register/underage` |
-| `/register/access` | Registro 2: acceso | `RegisterViewModel` | enviando, error por campo, listo → `/check-email` |
-| `/register/underage` | Menor de 14 | — | — |
-| `/check-email` | Verifica tu correo | `CheckEmailViewModel` | reenviando, reenviado (aviso) |
+| `/register` | Registro 1: datos | `RegisterViewModel` (compartido por los dos pasos) | campo vacío (error en el campo), menor de 14 → `/register/underage` |
+| `/register/access` | Registro 2: acceso | `RegisterViewModel` | error por campo antes de enviar, casilla sin marcar, enviando, error de la API por campo, listo → `/check-email` |
+| `/register/underage` | Menor de 14 | — (borra lo escrito: "No guardamos los datos") | — |
+| `/check-email` | Verifica tu correo | `CheckEmailViewModel` | reenviando, reenviado (aviso), sin correo conocido (pide el correo para reenviar) |
 | `/verify-email?token=` | Aprobada con la spec: estilo de "Verifica tu correo": "Correo verificado" o "El enlace venció" | `VerifyEmailViewModel` | verificando, verificado, vencido o usado |
 | `/forgot-password` | Recuperar contraseña | `ForgotPasswordViewModel` | enviando, enviado (aviso) |
 | `/reset-password?token=` | Nueva contraseña | `ResetPasswordViewModel` | enviando, no coinciden, enlace vencido, listo → `/login` con aviso |
@@ -99,7 +99,22 @@ En web van sin `#` (`usePathUrlStrategy`): el enlace del correo llega como
 
 `SessionNotifier` (estado de la app: comprobando, con sesión, sin sesión) decide
 las redirecciones de `go_router`: sin sesión solo se ven las rutas de auth; con
-sesión, las de auth llevan a `/home`.
+sesión, las de auth llevan a `/home`, salvo `/reset-password` (§7, F7).
+
+Registro:
+
+- `/register/access` y `/register/underage` son subrutas de `/register`: así
+  la flecha atrás del paso 2 vuelve al paso 1 con lo escrito (HU-02) y los dos
+  pasos comparten el mismo `RegisterViewModel`. Si se abre `/register/access`
+  sin el paso 1 (recarga en web), vuelve a `/register`.
+- La app revisa antes de enviar lo mismo que la API (RN-08, RN-10, D40,
+  D62-B), para marcar el campo sin esperar. La API igual lo vuelve a revisar.
+- La fecha de nacimiento se elige con el calendario de Material en español:
+  `flutter_localizations` (del SDK de Flutter, sin versión aparte) traduce los
+  textos de Material de toda la app.
+- El correo llega a `/check-email` por `extra` de `go_router`, no en la URL
+  (no queda en el historial del navegador). Si no llega (login con nombre de
+  usuario o recarga), la pantalla pide el correo para reenviar.
 
 ## 5. Datos y sesión
 
@@ -176,9 +191,15 @@ sesión, las de auth llevan a `/home`.
 - **Rutas web sin `#`:** al desplegar, el servidor tendrá que devolver
   `index.html` en cualquier ruta (por ejemplo `/verify-email`). Se resuelve con
   la decisión de despliegue, que sigue **[PENDIENTE]**.
-- **Enlaces del correo con sesión abierta:** con sesión, `/verify-email` y
-  `/reset-password` llevan a Inicio (§4) y el enlace se pierde.
-  **[PENDIENTE]** decidirlo antes de F6 y F7.
+- **Enlaces del correo con sesión abierta** (decidido por el equipo el
+  2026-11-27; falta registrarlo en el 01):
+  - `/verify-email` con sesión lleva a Inicio sin llamar a la API ni cerrar la
+    sesión: quien tiene sesión ya está verificado.
+  - `/reset-password` con sesión se abre igual (F7): primero cierra la sesión
+    actual y luego muestra el formulario, para que el enlace no se pierda.
+- **Política de privacidad sin página:** la casilla del registro no enlaza a
+  la política ni muestra su versión hasta que exista el texto.
+  **[PENDIENTE]**.
 - **Puerto 3000 en web:** con otro puerto, CORS bloquea y `/refresh` responde
   `origin_not_allowed`.
 - **Renovaciones simultáneas:** un error en el interceptor cierra la sesión del
