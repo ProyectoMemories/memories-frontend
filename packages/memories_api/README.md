@@ -74,6 +74,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**resetPasswordApiV1AuthPasswordResetPost**](doc/AuthApi.md#resetpasswordapiv1authpasswordresetpost) | **POST** /api/v1/auth/password/reset | Reset Password
 [*AuthApi*](doc/AuthApi.md) | [**verifyEmailApiV1AuthVerifyEmailPost**](doc/AuthApi.md#verifyemailapiv1authverifyemailpost) | **POST** /api/v1/auth/verify-email | Verify Email
 [*HealthApi*](doc/HealthApi.md) | [**healthHealthGet**](doc/HealthApi.md#healthhealthget) | **GET** /health | Health
+[*UsersApi*](doc/UsersApi.md) | [**getMyProfileApiV1UsersMeGet**](doc/UsersApi.md#getmyprofileapiv1usersmeget) | **GET** /api/v1/users/me | Get My Profile
 
 
 ## Documentation For Models
@@ -88,6 +89,7 @@ Class | Method | HTTP request | Description
  - [HealthResponse](doc/HealthResponse.md)
  - [LocationInner](doc/LocationInner.md)
  - [LoginRequest](doc/LoginRequest.md)
+ - [ProfileResponse](doc/ProfileResponse.md)
  - [RefreshTokenRequest](doc/RefreshTokenRequest.md)
  - [RegisterRequest](doc/RegisterRequest.md)
  - [ResendVerificationRequest](doc/ResendVerificationRequest.md)

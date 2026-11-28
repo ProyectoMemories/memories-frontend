@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../view_models/users/my_profile_view_model.dart';
 import 'app_router.dart';
 import 'widgets/app_bottom_bar.dart';
 
@@ -13,8 +15,7 @@ String greetingFor(DateTime now) {
 }
 
 /// Inicio provisional (HU-07): la estructura de "Inicio: álbumes" sin
-/// álbumes. El nombre del saludo llega con el módulo `users` y los álbumes
-/// con el suyo (D78).
+/// álbumes, que llegan con su módulo (D78).
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -32,10 +33,7 @@ class HomeView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    greetingFor(DateTime.now()),
-                    style: textTheme.labelSmall?.copyWith(fontSize: 14),
-                  ),
+                  const _Greeting(),
                   const SizedBox(height: 2),
                   Text('Tus álbumes', style: textTheme.headlineMedium),
                 ],
@@ -48,6 +46,26 @@ class HomeView extends StatelessWidget {
         current: AppTab.home,
         onSelect: (tab) => goToTab(context, tab),
       ),
+    );
+  }
+}
+
+/// "Buenas noches, Victor". Mientras carga o si falla, solo el saludo: no es
+/// crítico y no muestra errores (users, requirements HU-01).
+class _Greeting extends ConsumerWidget {
+  const _Greeting();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Solo con datos ya cargados: nunca un nombre que se está reemplazando.
+    final firstName = switch (ref.watch(myProfileProvider)) {
+      AsyncData(:final value) => value?.firstName,
+      _ => null,
+    };
+    final greeting = greetingFor(DateTime.now());
+    return Text(
+      firstName == null ? greeting : '$greeting, $firstName',
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 14),
     );
   }
 }

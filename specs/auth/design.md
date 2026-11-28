@@ -197,8 +197,9 @@ Registro:
 - **Campos de contraseña sin dibujar en el mockup** ("Registro 2" y "Nueva
   contraseña" muestran un bloque gris): se usan los mismos campos con botón de
   mostrar u ocultar (aprobado con la spec).
-- **Sin endpoint para leer el perfil:** la cabecera de Perfil y el nombre del
-  saludo de Inicio esperan al módulo `users` (D78).
+- **Sin endpoint para leer el perfil:** resuelto. `GET /users/me` llegó con
+  el módulo `users`; la cabecera de Perfil y el nombre del saludo están en
+  `specs/users`.
 - **Tipografía sin confirmar** (§3): si cambia, solo se toca el tema.
 - **Rutas web sin `#`:** al desplegar, el servidor tendrá que devolver
   `index.html` en cualquier ruta (por ejemplo `/verify-email`). Se resuelve con

@@ -78,7 +78,10 @@ de Android desde el correo sigue pendiente (D65).
 | Qué haces | Qué debe pasar |
 |---|---|
 | Entras con una contraseña incorrecta o un correo que no existe | "El usuario o la contraseña no son correctos." |
-| Entras con tus datos | Llegas a Inicio ("Tus álbumes") |
+| Entras con tus datos | Llegas a Inicio ("Tus álbumes"), con tu nombre en el saludo ("Buenas noches, Victor") |
+| Abres Perfil | Arriba, una tarjeta con tus iniciales, tu nombre y "@usuario · correo" |
+| Solo Android: apagas la API (`docker compose stop api`), cierras y abres la app, y vas a Perfil | El saludo queda sin nombre y Perfil dice "No pudimos cargar tus datos."; con `docker compose start api`, "Reintentar" muestra tus datos |
+| Cierras sesión y entras con otra cuenta | El saludo y Perfil muestran la cuenta nueva, nunca la anterior |
 | Ya en Inicio, recargas la página (web) o cierras y abres la app (Android) | Sigues en Inicio, sin escribir la contraseña |
 | Perfil → Cerrar sesión | Vuelves a Iniciar sesión |
 | Después de salir, recargas o reabres | Sigues en Iniciar sesión |

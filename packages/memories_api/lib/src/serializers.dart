@@ -24,6 +24,7 @@ import 'package:memories_api/src/model/http_validation_error.dart';
 import 'package:memories_api/src/model/health_response.dart';
 import 'package:memories_api/src/model/location_inner.dart';
 import 'package:memories_api/src/model/login_request.dart';
+import 'package:memories_api/src/model/profile_response.dart';
 import 'package:memories_api/src/model/refresh_token_request.dart';
 import 'package:memories_api/src/model/register_request.dart';
 import 'package:memories_api/src/model/resend_verification_request.dart';
@@ -47,6 +48,7 @@ part 'serializers.g.dart';
   HealthResponse,
   LocationInner,
   LoginRequest,
+  ProfileResponse,
   RefreshTokenRequest,
   RegisterRequest,
   ResendVerificationRequest,

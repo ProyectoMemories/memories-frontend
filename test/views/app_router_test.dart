@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memories/repositories/users_repository.dart';
 import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
+
+import '../view_models/users/users_fakes.dart' show FakeUsersRepository;
 
 /// SessionNotifier con el estado que pida el test, sin tocar la API.
 class FakeSessionNotifier extends SessionNotifier {
@@ -85,7 +88,11 @@ void main() {
     ) async {
       session = FakeSessionNotifier(initial);
       final container = ProviderContainer(
-        overrides: [sessionProvider.overrideWith(() => session)],
+        overrides: [
+          sessionProvider.overrideWith(() => session),
+          // Con sesión, Inicio pide el perfil: sin esto saldría a la red.
+          usersRepositoryProvider.overrideWithValue(FakeUsersRepository()),
+        ],
       );
       addTearDown(container.dispose);
       await tester.pumpWidget(

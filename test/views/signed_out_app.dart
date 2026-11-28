@@ -4,12 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/main.dart';
 import 'package:memories/repositories/auth_repository.dart';
 import 'package:memories/repositories/session/token_store.dart';
+import 'package:memories/repositories/users_repository.dart';
 import 'package:memories/view_models/auth/register_view_model.dart';
 import 'package:memories/views/app_router.dart';
 import 'package:memories/views/widgets/app_text_field.dart';
 
 import '../repositories/fake_http_adapter.dart';
 import '../view_models/auth/session_notifier_test.dart' show FakeAuthRepository;
+import '../view_models/users/users_fakes.dart' show FakeUsersRepository;
 
 /// La app completa (con su tema, idioma y router) sin sesión, con un
 /// repositorio falso y "hoy" fijo en el 27 de noviembre de 2026.
@@ -33,6 +35,8 @@ class SignedOutApp {
         authRepositoryProvider.overrideWithValue(repository),
         tokenStoreProvider.overrideWithValue(InMemoryTokenStore()),
         todayProvider.overrideWithValue(() => today),
+        // Al entrar, Inicio pide el perfil: sin esto saldría a la red.
+        usersRepositoryProvider.overrideWithValue(FakeUsersRepository()),
       ],
     );
     addTearDown(container.dispose);

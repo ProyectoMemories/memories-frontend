@@ -26,6 +26,9 @@ abstract final class AppColors {
     Color(0xFF6E5A48),
   ];
 
+  /// Avatar con iniciales de Perfil: el segundo color de las fotos.
+  static const avatar = Color(0xFFA0785A);
+
   /// Sombra de las polaroids: `textPrimary` al 14 %.
   static const polaroidShadow = Color(0x242B211B);
 }

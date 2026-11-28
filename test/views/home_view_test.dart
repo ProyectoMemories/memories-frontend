@@ -1,8 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memories/repositories/api_error.dart';
+import 'package:memories/repositories/users_repository.dart';
+import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
 import 'package:memories/views/home_view.dart';
 
+import '../view_models/users/users_fakes.dart';
 import 'signed_in_app.dart';
+
+/// El saludo sin nombre, sea la hora que sea.
+final greetingAlone = RegExp(r'^Buen(os días|as tardes|as noches)$');
 
 void main() {
   group('greetingFor', () {
@@ -24,6 +33,62 @@ void main() {
     expect(find.text('Inicio'), findsOneWidget);
     expect(find.text('Álbum'), findsOneWidget);
     expect(find.text('Perfil'), findsOneWidget);
+  });
+
+  group('saludo', () {
+    testWidgets('con el perfil, dice el nombre', (tester) async {
+      await SignedInApp.pump(tester);
+
+      expect(find.textContaining(RegExp(r'^Buen.*, Ana$')), findsOneWidget);
+    });
+
+    testWidgets('mientras carga, dice solo el saludo', (tester) async {
+      final pending = Completer<Profile>();
+      await SignedInApp.pump(
+        tester,
+        users: FakeUsersRepository()..onMyProfile = () => pending.future,
+      );
+
+      expect(find.textContaining(greetingAlone), findsOneWidget);
+      expect(find.textContaining('Ana'), findsNothing);
+    });
+
+    testWidgets('si falla, dice solo el saludo y ningún error', (tester) async {
+      await SignedInApp.pump(
+        tester,
+        users: FakeUsersRepository()
+          ..onMyProfile = () async =>
+              throw const ApiError(ApiErrorCode.network),
+      );
+
+      expect(find.textContaining(greetingAlone), findsOneWidget);
+      expect(find.textContaining('No pudimos'), findsNothing);
+    });
+  });
+
+  testWidgets('al cambiar de cuenta no queda el nombre anterior (RNF-02)', (
+    tester,
+  ) async {
+    final app = await SignedInApp.pump(tester);
+    expect(find.textContaining(RegExp(r', Ana$')), findsOneWidget);
+
+    await app.container.read(sessionProvider.notifier).logOut();
+    await tester.pumpAndSettle();
+    final pendingLuis = Completer<Profile>();
+    app.users.onMyProfile = () => pendingLuis.future;
+    await app.container
+        .read(sessionProvider.notifier)
+        .logIn(identifier: 'luis', password: 'clave-de-prueba');
+    await tester.pumpAndSettle();
+
+    // Mientras llegan los datos de Luis, ni rastro de Ana.
+    expect(app.location, AppRoutes.home);
+    expect(find.textContaining(greetingAlone), findsOneWidget);
+    expect(find.textContaining('Ana'), findsNothing);
+
+    pendingLuis.complete(luis);
+    await tester.pumpAndSettle();
+    expect(find.textContaining(RegExp(r', Luis$')), findsOneWidget);
   });
 
   testWidgets('crear álbum todavía no está disponible', (tester) async {

@@ -130,8 +130,8 @@ Como persona nueva, quiero crear mi cuenta en dos pasos cortos.
   Álbum y Perfil) sin álbumes. Los álbumes llegan con su módulo (D78).
 - **Dado** Perfil, **cuando** lo abro, **entonces** veo "Cambiar contraseña" y
   "Cerrar sesión". ("Cambiar contraseña" aparece en F7, con su pantalla; F5
-  muestra solo "Cerrar sesión".) Nombre, usuario y correo de la cabecera llegan con el módulo
-  `users`, porque la API todavía no tiene un endpoint para leerlos.
+  muestra solo "Cerrar sesión".) El nombre del saludo y la cabecera con
+  nombre, usuario y correo ya están, en `specs/users` (HU-01).
 
 ## Fuera de esta spec
 
