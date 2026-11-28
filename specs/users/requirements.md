@@ -1,6 +1,6 @@
 # Users en la app — requisitos
 
-Estado: **borrador**, para revisar
+Estado: **aprobada** (2026-11-28)
 
 - Fuente: Lista de requisitos (RF-04, RNF-02), 01-decisiones (D50, D57, D78,
   D79; por registrar: D81 "users es dueño del perfil" y D82 "el nombre va
