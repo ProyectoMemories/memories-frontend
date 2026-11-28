@@ -12,6 +12,7 @@ export 'package:memories_api/src/model/date.dart';
 
 export 'package:memories_api/src/api/auth_api.dart';
 export 'package:memories_api/src/api/health_api.dart';
+export 'package:memories_api/src/api/users_api.dart';
 
 export 'package:memories_api/src/model/account_status.dart';
 export 'package:memories_api/src/model/change_password_request.dart';
@@ -23,6 +24,7 @@ export 'package:memories_api/src/model/http_validation_error.dart';
 export 'package:memories_api/src/model/health_response.dart';
 export 'package:memories_api/src/model/location_inner.dart';
 export 'package:memories_api/src/model/login_request.dart';
+export 'package:memories_api/src/model/profile_response.dart';
 export 'package:memories_api/src/model/refresh_token_request.dart';
 export 'package:memories_api/src/model/register_request.dart';
 export 'package:memories_api/src/model/resend_verification_request.dart';

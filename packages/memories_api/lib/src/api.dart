@@ -11,6 +11,7 @@ import 'package:memories_api/src/auth/bearer_auth.dart';
 import 'package:memories_api/src/auth/oauth.dart';
 import 'package:memories_api/src/api/auth_api.dart';
 import 'package:memories_api/src/api/health_api.dart';
+import 'package:memories_api/src/api/users_api.dart';
 
 class MemoriesApi {
   static const String basePath = r'http://localhost';
@@ -142,5 +143,11 @@ class MemoriesApi {
   /// by doing that all interceptors will not be executed
   HealthApi getHealthApi() {
     return HealthApi(dio, serializers);
+  }
+
+  /// Get UsersApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  UsersApi getUsersApi() {
+    return UsersApi(dio, serializers);
   }
 }
