@@ -1,8 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memories/repositories/api_error.dart';
+import 'package:memories/repositories/users_repository.dart';
 import 'package:memories/views/app_router.dart';
 import 'package:memories/views/home_view.dart';
 
+import '../view_models/users/my_profile_view_model_test.dart';
 import 'signed_in_app.dart';
+
+/// El saludo sin nombre, sea la hora que sea.
+final greetingAlone = RegExp(r'^Buen(os días|as tardes|as noches)$');
 
 void main() {
   group('greetingFor', () {
@@ -24,6 +32,37 @@ void main() {
     expect(find.text('Inicio'), findsOneWidget);
     expect(find.text('Álbum'), findsOneWidget);
     expect(find.text('Perfil'), findsOneWidget);
+  });
+
+  group('saludo', () {
+    testWidgets('con el perfil, dice el nombre', (tester) async {
+      await SignedInApp.pump(tester);
+
+      expect(find.textContaining(RegExp(r'^Buen.*, Ana$')), findsOneWidget);
+    });
+
+    testWidgets('mientras carga, dice solo el saludo', (tester) async {
+      final pending = Completer<Profile>();
+      await SignedInApp.pump(
+        tester,
+        users: FakeUsersRepository()..onMyProfile = () => pending.future,
+      );
+
+      expect(find.textContaining(greetingAlone), findsOneWidget);
+      expect(find.textContaining('Ana'), findsNothing);
+    });
+
+    testWidgets('si falla, dice solo el saludo y ningún error', (tester) async {
+      await SignedInApp.pump(
+        tester,
+        users: FakeUsersRepository()
+          ..onMyProfile = () async =>
+              throw const ApiError(ApiErrorCode.network),
+      );
+
+      expect(find.textContaining(greetingAlone), findsOneWidget);
+      expect(find.textContaining('No pudimos'), findsNothing);
+    });
   });
 
   testWidgets('crear álbum todavía no está disponible', (tester) async {

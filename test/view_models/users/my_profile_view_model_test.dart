@@ -7,6 +7,8 @@ import 'package:memories/repositories/users_repository.dart';
 import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/view_models/users/my_profile_view_model.dart';
 
+import '../../views/app_router_test.dart' show FakeSessionNotifier;
+
 /// Doble del repositorio: responde lo que el test indique y cuenta pedidos.
 class FakeUsersRepository implements UsersRepository {
   FakeUsersRepository([Profile? profile])
@@ -38,18 +40,6 @@ const luis = Profile(
   email: 'luis@ejemplo.pe',
 );
 
-/// Sesión que el test cambia a mano, sin repositorio de auth.
-class _ManualSession extends SessionNotifier {
-  _ManualSession(this._initial);
-
-  final SessionStatus _initial;
-
-  @override
-  SessionStatus build() => _initial;
-
-  void set(SessionStatus status) => state = status;
-}
-
 void main() {
   late FakeUsersRepository repository;
 
@@ -57,12 +47,14 @@ void main() {
       ProviderContainer.test(
         overrides: [
           usersRepositoryProvider.overrideWithValue(repository),
-          sessionProvider.overrideWith(() => _ManualSession(session)),
+          sessionProvider.overrideWith(() => FakeSessionNotifier(session)),
         ],
       );
 
   void setSession(ProviderContainer container, SessionStatus status) =>
-      (container.read(sessionProvider.notifier) as _ManualSession).set(status);
+      (container.read(sessionProvider.notifier) as FakeSessionNotifier).emit(
+        status,
+      );
 
   setUp(() => repository = FakeUsersRepository());
 
