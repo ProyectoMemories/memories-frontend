@@ -9,8 +9,7 @@ import 'package:memories/views/theme/app_theme.dart';
 
 import '../repositories/fake_http_adapter.dart';
 import '../view_models/auth/session_notifier_test.dart' show FakeAuthRepository;
-import '../view_models/users/my_profile_view_model_test.dart'
-    show FakeUsersRepository;
+import '../view_models/users/users_fakes.dart' show FakeUsersRepository;
 
 /// La app completa con una sesión ya guardada, un repositorio de auth falso
 /// que cuenta los logout y uno de users que responde con [users] (por

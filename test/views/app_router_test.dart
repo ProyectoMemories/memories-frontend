@@ -5,8 +5,7 @@ import 'package:memories/repositories/users_repository.dart';
 import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
 
-import '../view_models/users/my_profile_view_model_test.dart'
-    show FakeUsersRepository;
+import '../view_models/users/users_fakes.dart' show FakeUsersRepository;
 
 /// SessionNotifier con el estado que pida el test, sin tocar la API.
 class FakeSessionNotifier extends SessionNotifier {

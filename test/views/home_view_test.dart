@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/repositories/api_error.dart';
 import 'package:memories/repositories/users_repository.dart';
+import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
 import 'package:memories/views/home_view.dart';
 
-import '../view_models/users/my_profile_view_model_test.dart';
+import '../view_models/users/users_fakes.dart';
 import 'signed_in_app.dart';
 
 /// El saludo sin nombre, sea la hora que sea.
@@ -63,6 +64,31 @@ void main() {
       expect(find.textContaining(greetingAlone), findsOneWidget);
       expect(find.textContaining('No pudimos'), findsNothing);
     });
+  });
+
+  testWidgets('al cambiar de cuenta no queda el nombre anterior (RNF-02)', (
+    tester,
+  ) async {
+    final app = await SignedInApp.pump(tester);
+    expect(find.textContaining(RegExp(r', Ana$')), findsOneWidget);
+
+    await app.container.read(sessionProvider.notifier).logOut();
+    await tester.pumpAndSettle();
+    final pendingLuis = Completer<Profile>();
+    app.users.onMyProfile = () => pendingLuis.future;
+    await app.container
+        .read(sessionProvider.notifier)
+        .logIn(identifier: 'luis', password: 'clave-de-prueba');
+    await tester.pumpAndSettle();
+
+    // Mientras llegan los datos de Luis, ni rastro de Ana.
+    expect(app.location, AppRoutes.home);
+    expect(find.textContaining(greetingAlone), findsOneWidget);
+    expect(find.textContaining('Ana'), findsNothing);
+
+    pendingLuis.complete(luis);
+    await tester.pumpAndSettle();
+    expect(find.textContaining(RegExp(r', Luis$')), findsOneWidget);
   });
 
   testWidgets('crear álbum todavía no está disponible', (tester) async {

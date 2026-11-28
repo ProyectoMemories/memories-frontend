@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../repositories/users_repository.dart';
+import '../../repositories/users_repository.dart' show Profile;
 import '../../view_models/users/my_profile_view_model.dart';
 import '../theme/app_colors.dart';
 

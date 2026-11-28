@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/app_router.dart';
 
-import '../../view_models/users/my_profile_view_model_test.dart' show luis;
+import '../../view_models/users/users_fakes.dart' show luis;
 import '../signed_in_app.dart';
 
 void main() {

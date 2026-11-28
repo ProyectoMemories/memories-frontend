@@ -9,7 +9,7 @@ import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/views/theme/app_theme.dart';
 import 'package:memories/views/users/profile_header.dart';
 
-import '../../view_models/users/my_profile_view_model_test.dart';
+import '../../view_models/users/users_fakes.dart';
 import '../app_router_test.dart' show FakeSessionNotifier;
 
 void main() {
@@ -101,8 +101,18 @@ void main() {
     final retry = find.widgetWithText(TextButton, 'Reintentar');
     expect(tester.getSize(retry).height, greaterThanOrEqualTo(44));
 
-    repository.onMyProfile = () async => ana;
+    final pending = Completer<Profile>();
+    repository.onMyProfile = () => pending.future;
+    final handle = tester.ensureSemantics();
     await tester.tap(retry);
+    await tester.pump();
+
+    // Mientras reintenta: cargando, sin el error anterior.
+    expect(find.bySemanticsLabel('Cargando tus datos'), findsOneWidget);
+    expect(find.text('No pudimos cargar tus datos.'), findsNothing);
+    handle.dispose();
+
+    pending.complete(ana);
     await tester.pumpAndSettle();
 
     expect(repository.calls, 2);

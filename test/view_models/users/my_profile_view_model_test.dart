@@ -8,37 +8,7 @@ import 'package:memories/view_models/auth/session_notifier.dart';
 import 'package:memories/view_models/users/my_profile_view_model.dart';
 
 import '../../views/app_router_test.dart' show FakeSessionNotifier;
-
-/// Doble del repositorio: responde lo que el test indique y cuenta pedidos.
-class FakeUsersRepository implements UsersRepository {
-  FakeUsersRepository([Profile? profile])
-    : onMyProfile = (() async => profile ?? ana);
-
-  Future<Profile> Function() onMyProfile;
-  int calls = 0;
-
-  @override
-  Future<Profile> myProfile() {
-    calls++;
-    return onMyProfile();
-  }
-}
-
-const ana = Profile(
-  firstName: 'Ana',
-  paternalSurname: 'Paz',
-  maternalSurname: null,
-  username: 'ana.paz',
-  email: 'ana@ejemplo.pe',
-);
-
-const luis = Profile(
-  firstName: 'Luis',
-  paternalSurname: 'Ríos',
-  maternalSurname: 'Soto',
-  username: 'luis.rios',
-  email: 'luis@ejemplo.pe',
-);
+import 'users_fakes.dart';
 
 void main() {
   late FakeUsersRepository repository;
