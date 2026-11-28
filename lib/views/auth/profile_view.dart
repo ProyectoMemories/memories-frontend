@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../view_models/auth/profile_view_model.dart';
 import '../home_view.dart';
 import '../theme/app_colors.dart';
+import '../users/profile_header.dart';
 import '../widgets/app_bottom_bar.dart';
 
-/// Perfil provisional (HU-07). La cabecera con nombre, usuario y correo llega
-/// con el módulo `users`; "Cambiar contraseña", con su pantalla en F7.
+/// Perfil provisional (HU-07): la cabecera de `users` y Cerrar sesión.
+/// "Cambiar contraseña" llega con su pantalla en F7.
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
@@ -30,6 +31,8 @@ class ProfileView extends ConsumerWidget {
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 16),
+                  const ProfileHeader(),
+                  const SizedBox(height: 14),
                   _Card(
                     child: _ProfileRow(
                       icon: Icons.logout,
